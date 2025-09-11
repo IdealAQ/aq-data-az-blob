@@ -1,14 +1,15 @@
+from azure.storage.blob import BlobServiceClient, ContainerClient
 from dotenv import load_dotenv
 import os
 import shutil
 
 ENV_SOURCE_PATH="AQ_AZ_SOURCE_FILE_DIRECTORY_PATH"
 ENV_STAGING_PATH="AQ_AZ_STAGING_DIRECTORY_PATH"
+ENV_AZ_STORAGE_CONNECTION_STRING="AQ_AZ_STORAGE_CONNECTION_STRING"
+ENV_AZ_STORAGE_CONTAINER_NAME="AQ_AZ_STORAGE_CONTAINER_NAME"
+ENV_DEVICE_ID="AQ_DEVICE_ID"
 
 def prepare_files(source_path:str, dir_to_process:str, dir_archive:str):
-    os.makedirs(dir_to_process, exist_ok=True)
-    os.makedirs(dir_archive, exist_ok=True)
-
     with os.scandir(source_path) as entries:
         keep = -1 #keep one most recent file
         sorted_entries = sorted(entries, key=lambda e: e.name)
@@ -19,8 +20,50 @@ def prepare_files(source_path:str, dir_to_process:str, dir_archive:str):
                 continue
             shutil.move(entry.path, os.path.join(dir_to_process), entry.name)
 
-def explort_file(file_path:str):
-    pass
+def _explort_file(entry:os.DirEntry[str], container_client:ContainerClient) -> bool:
+    device_id = os.getenv(ENV_DEVICE_ID)
+    name = entry.name
+
+    if len(name) < 12:
+        return False
+    
+    file_date = name[:10]
+    file_name = name[11:]
+
+    if file_date.count("-") != 2:
+        return False
+    
+    year, month, day = file_date.split("-")
+
+    blob_path = f"device_id={device_id}/year={year}/month={month}/day={day}/{file_name}"
+
+    
+    try:
+        with open(entry.path, "rb") as data:
+            container_client.upload_blob(name=blob_path, data=data, overwrite=True)
+    except Exception as e:
+        print(f"❌ Failed to upload blob: {e}")
+        return False
+    
+    return True
+
+    
+def export_files(directory_path:str, directory_discard_path:str):
+    connection_string= os.getenv(ENV_AZ_STORAGE_CONNECTION_STRING)
+    container_name = os.getenv(ENV_AZ_STORAGE_CONTAINER_NAME)
+
+    blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+    container_client = blob_service_client.get_container_client(container_name)
+
+    with os.scandir(directory_path) as entries:
+        for entry in entries:
+            if entry.is_file and not entry.name.startswith(".") and entry.name.endswith(".csv"):
+                if not _explort_file(entry, container_client):
+                    # move file to discard folder
+                    print("some error")
+                else:
+                    print("successful upload")
+                    # move to archive
 
 def main():
     load_dotenv()
@@ -28,11 +71,21 @@ def main():
     staging_path = os.getenv(ENV_STAGING_PATH)
     dir_to_process = f"{staging_path}/to_process"
     dir_archive = f"{staging_path}/archive"
+    dir_discarded = f"{staging_path}/discarded"
+
+    os.makedirs(dir_to_process, exist_ok=True)
+    os.makedirs(dir_archive, exist_ok=True)
+    os.makedirs(dir_discarded, exist_ok=True)
 
     prepare_files(
         source_path=source_path,
         dir_to_process=dir_to_process,
         dir_archive=dir_archive
+    )
+
+    export_files(
+        directory_path=dir_to_process,
+        directory_discard_path=dir_discarded
     )
 
 if __name__ == "__main__":
