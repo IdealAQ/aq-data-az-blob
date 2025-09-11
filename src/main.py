@@ -9,7 +9,7 @@ ENV_AZ_STORAGE_CONNECTION_STRING="AQ_AZ_STORAGE_CONNECTION_STRING"
 ENV_AZ_STORAGE_CONTAINER_NAME="AQ_AZ_STORAGE_CONTAINER_NAME"
 ENV_DEVICE_ID="AQ_DEVICE_ID"
 
-def prepare_files(source_path:str, dir_to_process:str, dir_archive:str):
+def prepare_files(source_path:str, dir_to_process:str):
     with os.scandir(source_path) as entries:
         keep = -1 #keep one most recent file
         sorted_entries = sorted(entries, key=lambda e: e.name)
@@ -19,6 +19,7 @@ def prepare_files(source_path:str, dir_to_process:str, dir_archive:str):
             if not entry.is_file():
                 continue
             shutil.move(entry.path, os.path.join(dir_to_process), entry.name)
+            print(f"Moved {entry.name} to {dir_to_process}.")
 
 def _explort_file(entry:os.DirEntry[str], container_client:ContainerClient) -> bool:
     device_id = os.getenv(ENV_DEVICE_ID)
@@ -48,7 +49,7 @@ def _explort_file(entry:os.DirEntry[str], container_client:ContainerClient) -> b
     return True
 
     
-def export_files(directory_path:str, directory_discard_path:str):
+def export_files(directory_path:str, directory_archive:str, directory_discard_path:str):
     connection_string= os.getenv(ENV_AZ_STORAGE_CONNECTION_STRING)
     container_name = os.getenv(ENV_AZ_STORAGE_CONTAINER_NAME)
 
@@ -59,11 +60,12 @@ def export_files(directory_path:str, directory_discard_path:str):
         for entry in entries:
             if entry.is_file and not entry.name.startswith(".") and entry.name.endswith(".csv"):
                 if not _explort_file(entry, container_client):
-                    # move file to discard folder
+                    # move file to discard folder?
                     print("some error")
                 else:
-                    print("successful upload")
-                    # move to archive
+                    print(f"successful upload of {entry.name}")
+                    shutil.move(entry.path, os.path.join(directory_archive), entry.name)
+                    print(f"Moved {entry.name} to {directory_archive}.")
 
 def main():
     load_dotenv()
@@ -78,14 +80,14 @@ def main():
     os.makedirs(dir_discarded, exist_ok=True)
 
     prepare_files(
-        source_path=source_path,
-        dir_to_process=dir_to_process,
-        dir_archive=dir_archive
+        source_path = source_path,
+        dir_to_process = dir_to_process
     )
 
     export_files(
-        directory_path=dir_to_process,
-        directory_discard_path=dir_discarded
+        directory_path = dir_to_process,
+        directory_archive = dir_archive,
+        directory_discard_path = dir_discarded
     )
 
 if __name__ == "__main__":
