@@ -2,12 +2,15 @@ from azure.storage.blob import BlobServiceClient, ContainerClient
 from dotenv import load_dotenv
 import os
 import shutil
+import io
+import pandas as pd
 
 ENV_SOURCE_PATH="AQ_AZ_SOURCE_FILE_DIRECTORY_PATH"
 ENV_STAGING_PATH="AQ_AZ_STAGING_DIRECTORY_PATH"
 ENV_AZ_STORAGE_CONNECTION_STRING="AQ_AZ_STORAGE_CONNECTION_STRING"
 ENV_AZ_STORAGE_CONTAINER_NAME="AQ_AZ_STORAGE_CONTAINER_NAME"
 ENV_DEVICE_ID="AQ_DEVICE_ID"
+ENV_AES_KEY="AQ_AES_KEY"
 
 def prepare_files(source_path:str, dir_to_process:str):
     with os.scandir(source_path) as entries:
@@ -18,7 +21,7 @@ def prepare_files(source_path:str, dir_to_process:str):
         for entry in entries_to_process:
             if not entry.is_file():
                 continue
-            shutil.move(entry.path, os.path.join(dir_to_process), entry.name)
+            shutil.move(entry.path, os.path.join(dir_to_process, entry.name))
             print(f"Moved {entry.name} to {dir_to_process}.")
 
 def _explort_file(entry:os.DirEntry[str], container_client:ContainerClient) -> bool:
@@ -36,12 +39,18 @@ def _explort_file(entry:os.DirEntry[str], container_client:ContainerClient) -> b
     
     year, month, day = file_date.split("-")
 
-    blob_path = f"device_id={device_id}/year={year}/month={month}/day={day}/{file_name}"
+    blob_path = f"aq-data/device_id={device_id}/year={year}/month={month}/day={day}/{file_name[:-4]}.parquet"
 
+    buffer = io.BytesIO()
+    df = pd.read_csv(entry)
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    df = df.set_index("timestamp")
+    df.to_parquet(buffer, engine="pyarrow")
+    buffer.seek(0)
     
     try:
         with open(entry.path, "rb") as data:
-            container_client.upload_blob(name=blob_path, data=data, overwrite=True)
+            container_client.upload_blob(name=blob_path, data=buffer, overwrite=True)
     except Exception as e:
         print(f"❌ Failed to upload blob: {e}")
         return False
@@ -64,7 +73,7 @@ def export_files(directory_path:str, directory_archive:str, directory_discard_pa
                     print("some error")
                 else:
                     print(f"successful upload of {entry.name}")
-                    shutil.move(entry.path, os.path.join(directory_archive), entry.name)
+                    shutil.move(entry.path, os.path.join(directory_archive, entry.name))
                     print(f"Moved {entry.name} to {directory_archive}.")
 
 def main():
