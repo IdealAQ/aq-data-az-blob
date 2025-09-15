@@ -84,11 +84,11 @@ def upload_files(
     ) -> None:
     dir_to_process = f"{staging_dir_path}/to_process"
     dir_archive = f"{staging_dir_path}/archive"
-    dir_discarded = f"{staging_dir_path}/discarded"
+    # dir_discarded = f"{staging_dir_path}/discarded"
 
     os.makedirs(dir_to_process, exist_ok=True)
     os.makedirs(dir_archive, exist_ok=True)
-    os.makedirs(dir_discarded, exist_ok=True)
+    # os.makedirs(dir_discarded, exist_ok=True)
 
     _prepare_files(
         source_path = source_dir_path,
