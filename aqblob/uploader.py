@@ -1,18 +1,10 @@
-from azure.storage.blob import BlobServiceClient, ContainerClient
-from dotenv import load_dotenv
 import os
-import shutil
 import io
 import pandas as pd
+import shutil
+from azure.storage.blob import BlobServiceClient, ContainerClient
 
-ENV_SOURCE_PATH="AQ_AZ_SOURCE_FILE_DIRECTORY_PATH"
-ENV_STAGING_PATH="AQ_AZ_STAGING_DIRECTORY_PATH"
-ENV_AZ_STORAGE_CONNECTION_STRING="AQ_AZ_STORAGE_CONNECTION_STRING"
-ENV_AZ_STORAGE_CONTAINER_NAME="AQ_AZ_STORAGE_CONTAINER_NAME"
-ENV_DEVICE_ID="AQ_DEVICE_ID"
-ENV_AES_KEY="AQ_AES_KEY"
-
-def prepare_files(source_path:str, dir_to_process:str):
+def _prepare_files(source_path:str, dir_to_process:str):
     with os.scandir(source_path) as entries:
         keep = -1 #keep one most recent file
         sorted_entries = sorted(entries, key=lambda e: e.name)
@@ -24,8 +16,7 @@ def prepare_files(source_path:str, dir_to_process:str):
             shutil.move(entry.path, os.path.join(dir_to_process, entry.name))
             print(f"Moved {entry.name} to {dir_to_process}.")
 
-def _explort_file(entry:os.DirEntry[str], container_client:ContainerClient) -> bool:
-    device_id = os.getenv(ENV_DEVICE_ID)
+def _explort_file(entry:os.DirEntry[str], container_client:ContainerClient, device_id:str) -> bool:
     name = entry.name
 
     if len(name) < 12:
@@ -57,10 +48,13 @@ def _explort_file(entry:os.DirEntry[str], container_client:ContainerClient) -> b
     
     return True
 
-    
-def export_files(directory_path:str, directory_archive:str, directory_discard_path:str):
-    connection_string= os.getenv(ENV_AZ_STORAGE_CONNECTION_STRING)
-    container_name = os.getenv(ENV_AZ_STORAGE_CONTAINER_NAME)
+def _export_files(
+        directory_path:str, 
+        directory_archive:str,
+        connection_string:str,
+        container_name:str,
+        device_id:str 
+        ):
 
     blob_service_client = BlobServiceClient.from_connection_string(connection_string)
     container_client = blob_service_client.get_container_client(container_name)
@@ -68,7 +62,11 @@ def export_files(directory_path:str, directory_archive:str, directory_discard_pa
     with os.scandir(directory_path) as entries:
         for entry in entries:
             if entry.is_file and not entry.name.startswith(".") and entry.name.endswith(".csv"):
-                if not _explort_file(entry, container_client):
+                if not _explort_file(
+                    entry=entry, 
+                    container_client=container_client,
+                    device_id=device_id
+                ):
                     # move file to discard folder?
                     print("some error")
                 else:
@@ -76,28 +74,35 @@ def export_files(directory_path:str, directory_archive:str, directory_discard_pa
                     shutil.move(entry.path, os.path.join(directory_archive, entry.name))
                     print(f"Moved {entry.name} to {directory_archive}.")
 
-def main():
-    load_dotenv()
-    source_path = os.getenv(ENV_SOURCE_PATH)
-    staging_path = os.getenv(ENV_STAGING_PATH)
-    dir_to_process = f"{staging_path}/to_process"
-    dir_archive = f"{staging_path}/archive"
-    dir_discarded = f"{staging_path}/discarded"
+
+def upload_files(
+        source_dir_path:str, 
+        staging_dir_path:str,
+        device_id:str,
+        az_storage_connection_string:str,
+        az_storage_container_name:str
+    ) -> None:
+    dir_to_process = f"{staging_dir_path}/to_process"
+    dir_archive = f"{staging_dir_path}/archive"
+    dir_discarded = f"{staging_dir_path}/discarded"
 
     os.makedirs(dir_to_process, exist_ok=True)
     os.makedirs(dir_archive, exist_ok=True)
     os.makedirs(dir_discarded, exist_ok=True)
 
-    prepare_files(
-        source_path = source_path,
+    _prepare_files(
+        source_path = source_dir_path,
         dir_to_process = dir_to_process
     )
 
-    export_files(
+    _export_files(
         directory_path = dir_to_process,
         directory_archive = dir_archive,
-        directory_discard_path = dir_discarded
+        device_id=device_id,
+        connection_string=az_storage_connection_string,
+        container_name=az_storage_container_name
     )
 
-if __name__ == "__main__":
-    main()
+
+
+    

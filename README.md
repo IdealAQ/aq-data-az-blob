@@ -35,9 +35,10 @@ download and install dependencies
 uv sync
 ```
 
-run the script*
+run the script
+> **NOTE:** run as a module (use `-m` flag)
 ```bash
-uv run src/main.py
+uv run python -m scripts.upload_files
 ```
 
 ### CRON
