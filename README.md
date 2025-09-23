@@ -20,7 +20,6 @@ The following Environmental variables must be set. Setting them in .env file loc
 |AQ_AZ_STORAGE_CONNECTION_STRING|connection string from azure storage account|never_ever_share_this|
 |AQ_AZ_STORAGE_CONTAINER_NAME|azure storage container name||
 |AQ_DEVICE_ID|device id|test|
-|AQ_AES_KEY|||
 
 ### Virtual environment
 Use [uv](https://docs.astral.sh/uv/) to create virtual environment, install necessary packages and run the script.

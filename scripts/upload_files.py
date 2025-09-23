@@ -1,5 +1,4 @@
-from aqblob import upload_files
-from aqblob import config
+from aqblob import upload_files, config, setup_logging
 
 def main():
     upload_files(
@@ -11,4 +10,5 @@ def main():
     )
 
 if __name__ == "__main__":
+    setup_logging(log_dir=config.LOG_DIRECTORY_PATH)
     main()
