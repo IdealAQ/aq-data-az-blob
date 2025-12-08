@@ -16,6 +16,7 @@ The following Environmental variables must be set. Setting them in .env file loc
 | ENV variable | description | exmple |
 | -------------|-------------|--------|
 |AQ_AZ_SOURCE_FILE_DIRECTORY_PATH|path to the directory with csv files|/Users/rohal/projects/aq/local/aq-gateway/measurements|
+|DOWNLOADED_DIR_PATH|path to the directory with where files are downloaded from azure||
 |AQ_AZ_STAGING_DIRECTORY_PATH|path to the directory used by the script for file manipulation and local archiving|/Users/rohal/projects/aq/local/aq-data-az-blob/staging|
 |AQ_AZ_STORAGE_CONNECTION_STRING|connection string from azure storage account|never_ever_share_this|
 |AQ_AZ_STORAGE_CONTAINER_NAME|azure storage container name||
@@ -40,6 +41,10 @@ run the script
 > **NOTE:** run as a module (use `-m` flag)
 ```bash
 uv run python -m scripts.upload_files
+```
+
+```bash
+uv run python -m scripts.download_files --id="test-001" --year=2025 --month=12 --day=8
 ```
 
 ### CRON

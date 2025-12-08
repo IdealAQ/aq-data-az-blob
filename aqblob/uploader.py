@@ -7,11 +7,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def _prepare_files(source_path:str, dir_to_process:str):
+def _prepare_files(source_path:str, dir_to_process:str, keep:int = 1):
     with os.scandir(source_path) as entries:
-        keep = -1 #keep one most recent file
         sorted_entries = sorted(entries, key=lambda e: e.name)
-        entries_to_process = sorted_entries[:keep]
+        entries_to_process = sorted_entries[:-keep] if keep else sorted_entries[:]
         
         for entry in entries_to_process:
             if not entry.is_file():
@@ -88,7 +87,8 @@ def upload_files(
         staging_dir_path:str,
         device_id:str,
         az_storage_connection_string:str,
-        az_storage_container_name:str
+        az_storage_container_name:str,
+        keep:int=1
     ) -> None:
     logger.info("Starting upload_files process... <--- <----")
     dir_to_process = f"{staging_dir_path}/to_process"
@@ -99,7 +99,8 @@ def upload_files(
 
     _prepare_files(
         source_path = source_dir_path,
-        dir_to_process = dir_to_process
+        dir_to_process = dir_to_process,
+        keep = keep
     )
 
     succeeded, failed = _export_files(
