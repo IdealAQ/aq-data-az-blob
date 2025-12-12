@@ -5,7 +5,7 @@ def main():
     parser = argparse.ArgumentParser(description="Upload files to Azure Storage.")
 
     parser.add_argument(
-        "--keep",
+        "-k", "--keep",
         type = int,             
         required = False,        
         help = "Number of latest files to ignore (default: -1 for the latest file - being written into).",
