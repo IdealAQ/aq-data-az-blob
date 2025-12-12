@@ -2,27 +2,27 @@ import argparse
 from aqblob import download_files, config, setup_logging
 
 def main():
-    parser = argparse.ArgumentParser(description="Download files from Azure Storage.")
+    parser = argparse.ArgumentParser(description="Downloads files from Azure Storage.")
 
     parser.add_argument(
         "--id",
         type = str,             
         required = True,        
-        help = "Device identifier to filter files for downloading.",
+        help = "Device identifier to filter files for download.",
     )
 
     parser.add_argument(
         "--year",
         type = int,             
         required = True,        
-        help = "Year to filter files for downloading.",
+        help = "Year to filter files for download.",
     )
 
     parser.add_argument(
         "--month",
         type = int,             
         required = True,        
-        help = "Month to filter files for downloading.",
+        help = "Month to filter files for download.",
     )
 
     parser.add_argument(
