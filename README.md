@@ -1,7 +1,5 @@
-# CSV to Blob export
-This script scans specified directory for *.csv files and exports them as *.parquet files to Azure Storage.
-
-As a convention, UTC time is used.
+# CSV to Blob export and download
+> These scripts use UTC time for all input, output, logs, and internal calculations.
 
 ## Installation
 ### ENV variables overview
