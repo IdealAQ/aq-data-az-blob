@@ -1,16 +1,18 @@
 # CSV to Blob export
 This script scans specified directory for *.csv files and exports them as *.parquet files to Azure Storage.
 
-## Prerequisites
-Files must be saved in a single directory named accordingly: `<datetime>_<fixed_digit_increment>.csv`.
+## CSV file naming
+Files must be saved in a single directory and they must be named accordingly: `<datetime>_<fixed_digit_increment>.csv`.
 
-`<datetime>` is in `YYYY-MM-DD` (ISO 8601) format.
+- `<datetime>` must be a date in `YYYY-MM-DD` (ISO 8601) format.
+- `<fixed_digit_increment>` is recommended to be `%H-%M-%S` - hours, minutes and seconds, each 2 digit
+- `<datetime>_<fixed_digit_increment>` should indicate exact date and time when the file was created and started beig written to
+- Example: `2025-11-25_10-59-05.csv`.
 
-Example: `2025-11-25_00321.csv`. 
-Leading zeroes in `<fixed_digit_increment>` part ensure the files sorted by name are ordered from the oldest to the newest ones. The `<fixed_digit_increment>` part can be the second of the day the file is created, ranging from `00000` to `86400` (**recommended**).
+_These conventions ensure that if the files are sorted by name, they are also sorted from the oldest to the newest ones_
 
 ## Installation
-### ENV variables
+### ENV variables overview
 The following Environmental variables must be set. Setting them in .env file located in the [/src](./src/) directory is possible.
 
 | ENV variable | description | exmple |
@@ -36,6 +38,10 @@ download and install dependencies
 ```bash
 uv sync
 ```
+
+
+## scripts
+
 
 run the script
 > **NOTE:** run as a module (use `-m` flag)
