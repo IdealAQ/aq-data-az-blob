@@ -3,7 +3,7 @@
 
 ## Installation
 ### ENV variables overview
-The following Environmental variables must be set. Setting them in .env file located in the [/src](./src/) directory is possible.
+The following Environmental variables must be set. Setting them in .env file located in the project root directory is possible.
 
 | ENV variable | description | exmple |
 | -------------|-------------|--------|
