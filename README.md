@@ -1,6 +1,8 @@
 # CSV to Blob export
 This script scans specified directory for *.csv files and exports them as *.parquet files to Azure Storage.
 
+As a convention, UTC time is used.
+
 ## Installation
 ### ENV variables overview
 The following Environmental variables must be set. Setting them in .env file located in the [/src](./src/) directory is possible.
@@ -73,16 +75,28 @@ uv run python -m scripts.upload_files -k 0 # be careful to not run it when a fil
 ```
 
 ### [download_files.py](./scripts/download_files.py)
+#### Description
+Downloads files from Azure storage service.
 
-run the script
+#### Required ENV variables
+`AQ_AZ_DOWNLOADED_DIR_PATH`, `AQ_AZ_STORAGE_CONNECTION_STRING`, `AQ_AZ_STORAGE_CONTAINER_NAME`
+
+#### Arguments
+
+| Argument | Type | Default | Description|
+|----------|------|---------|------------|
+|`--id`|string|_required_|Device identifier to filter files for download.|
+|`--year`|int|_required_|Year to filter files for download.|
+|`--month`|int|_required_|Month to filter files for download.|
+|`--day`|int|_required_|Day to filter files for download.|
+
+#### Use
 > **NOTE:** run as a module (use `-m` flag)
-```bash
-uv run python -m scripts.upload_files
-```
 
+To download files from device test-001 produced on 2025-12-08, run:
 ```bash
 uv run python -m scripts.download_files --id="test-001" --year=2025 --month=12 --day=8
 ```
 
-### CRON
-It is recommended to trigger the script regularily with [cron](https://en.wikipedia.org/wiki/Cron).
+
+
