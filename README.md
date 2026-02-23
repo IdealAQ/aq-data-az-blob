@@ -96,5 +96,24 @@ To download files from device test-001 produced on 2025-12-08, run:
 uv run python -m scripts.download_files --id="test-001" --year=2025 --month=12 --day=8
 ```
 
+### [parquet_to_csv.py](./scripts/upload_files.py)
+#### Description
+Convert Parquet file to CSV.
 
+#### Required ENV variables
+`AQ_AZ_DOWNLOADED_DIR_PATH`
 
+#### Arguments
+
+| Argument | Type | Default | Description|
+|----------|------|---------|------------|
+|`--file_name`, `-f`|str|_required_|Name of parquet file in `DOWNLOADED_DIR_PATH` directory.|
+|`--output`, `-o`|str|_required_|Path of new csv file to be created.|
+
+#### Use
+> **NOTE:** run as a module (use `-m` flag)
+
+To convert `2026_month=02_day=19_hour=12_1771506660.parquet` file into `./output.csv`, run
+```
+uv run python -m scripts.parquet_to_csv -f="archive_device=gateway-002_year=2026_month=02_day=19_hour=12_1771506660.parquet" -o="./output.csv"
+```
