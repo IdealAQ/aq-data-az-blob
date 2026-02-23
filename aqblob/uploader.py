@@ -32,7 +32,7 @@ def _export_file(entry:os.DirEntry[str], container_client:ContainerClient, devic
     
     year, month, day = file_date.split("-")
 
-    blob_path = f"aq-data/device_id={device_id}/year={year}/month={month}/day={day}/{file_name[:-4]}.parquet"
+    blob_path = f"archive/device={device_id}/year={year}/month={month}/day={day}/{file_name[:-4]}.parquet"
 
     buffer = io.BytesIO()
     df = pd.read_csv(entry)

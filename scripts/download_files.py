@@ -37,7 +37,7 @@ def main():
 
     args = parser.parse_args()
 
-    prefix = f"aq-data/device_id={args.id}/year={args.year}/month={args.month:02}/day={args.day:02}/"
+    prefix = f"archive/device={args.id}/year={args.year}/month={args.month:02}/day={args.day:02}/"
     download_files(
         downloaded_dir_path = config.DOWNLOADED_DIR_PATH,
         prefix=prefix,
