@@ -1,4 +1,4 @@
-# CSV to Blob export and download
+# AQ blob upload and download scripts
 > These scripts use UTC time for all input, output, logs, and internal calculations.
 
 ## Installation
@@ -11,7 +11,7 @@ The following Environmental variables must be set. Setting them in .env file loc
 |`AQ_AZ_STAGING_DIRECTORY_PATH`|path to the directory used by the script for file manipulation and local archiving|`/Users/rohal/projects/aq/local/aq-data-az-blob/staging`|
 |`AQ_AZ_STORAGE_CONNECTION_STRING`|connection string from azure storage account|_never ever share this_|
 |`AQ_AZ_STORAGE_CONTAINER_NAME`|azure storage container name|`measures-archive`|
-|`AQ_DEVICE_ID`|device id|`test`|
+|`AQ_SOURCE_ID`|device/source id|`test`|
 |`AQ_BLOB_LOG_DIRECTORY_PATH`| log path | `/Users/rohal/projects/aq/local/aq-data-az-blob/logs` |
 |`DOWNLOADED_DIR_PATH`|path to the directory where files are downloaded from azure|`/Users/rohal/projects/aq/local/aq-data-az-blob/downloaded`|
 
@@ -28,7 +28,7 @@ download and install dependencies
 uv sync
 ```
 
-## CSV files
+## Files
 ### Naming
 Files must be saved in a single directory and they must be named accordingly: `<datetime>_<fixed_digit_increment>.csv`.
 
@@ -46,11 +46,9 @@ A file must contain a header. The number of columns is not fixed and may vary fr
 Scripts are located in the [scripts](./scripts/) directory.
 
 ### [upload_files.py](./scripts/upload_files.py)
-#### Description
-Converts \*.csv files into \*.parquet format and uploads them into Azure storage service.
 
 #### Required ENV variables
- `AQ_AZ_SOURCE_FILE_DIRECTORY_PATH`, `AQ_AZ_STAGING_DIRECTORY_PATH`, `AQ_DEVICE_ID`, `AQ_AZ_STORAGE_CONNECTION_STRING`, `AQ_AZ_STORAGE_CONTAINER_NAME`
+ `AQ_AZ_SOURCE_FILE_DIRECTORY_PATH`, `AQ_AZ_STAGING_DIRECTORY_PATH`, `AQ_SOURCE_ID`, `AQ_AZ_STORAGE_CONNECTION_STRING`, `AQ_AZ_STORAGE_CONTAINER_NAME`
 
 #### Arguments
 

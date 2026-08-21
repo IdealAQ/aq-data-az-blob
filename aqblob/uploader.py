@@ -2,21 +2,25 @@ import os
 import io
 import pandas as pd
 import shutil
+from tqdm import tqdm
+from pathlib import Path
 from azure.storage.blob import BlobServiceClient, ContainerClient
 import logging
+from pprint import pprint
+
 
 logger = logging.getLogger(__name__)
 
-def _prepare_files(source_path:str, dir_to_process:str, keep:int = 1):
-    with os.scandir(source_path) as entries:
+def _prepare_files(dir_source_path:str, dir_process_path:str, keep:int = 1):
+    with os.scandir(dir_source_path) as entries:
         sorted_entries = sorted(entries, key=lambda e: e.name)
         entries_to_process = sorted_entries[:-keep] if keep else sorted_entries[:]
         
         for entry in entries_to_process:
             if not entry.is_file():
                 continue
-            shutil.move(entry.path, os.path.join(dir_to_process, entry.name))
-            logger.debug(f"Moved {entry.name} to {dir_to_process}.")
+            shutil.move(entry.path, os.path.join(dir_process_path, entry.name))
+            logger.debug(f"Moved {entry.name} to {dir_process_path}.")
 
 def _export_file(entry:os.DirEntry[str], container_client:ContainerClient, device_id:str) -> bool:
     name = entry.name
@@ -66,7 +70,8 @@ def _export_files(
 
     with os.scandir(directory_path) as entries:
         for entry in entries:
-            if entry.is_file and not entry.name.startswith(".") and entry.name.endswith(".csv"):
+            file_suffix_list = (".csv",)
+            if entry.is_file and not entry.name.startswith(".") and entry.name.endswith(file_suffix_list):
                 if not _export_file(
                     entry=entry, 
                     container_client=container_client,
@@ -85,7 +90,7 @@ def _export_files(
 def upload_files(
         source_dir_path:str, 
         staging_dir_path:str,
-        device_id:str,
+        source:str,
         az_storage_connection_string:str,
         az_storage_container_name:str,
         keep:int=1
@@ -94,19 +99,56 @@ def upload_files(
     dir_to_process = f"{staging_dir_path}/to_process"
     dir_archive = f"{staging_dir_path}/archive"
 
+    # staging directories
     os.makedirs(dir_to_process, exist_ok=True)
     os.makedirs(dir_archive, exist_ok=True)
 
+    source = Path(source_dir_path)
+    files = [f for f in source.rglob("*") if f.is_file()]
+    logger.info(f"Found {len(list(files))} files in source directory {source_dir_path}.")
+    for file in files:
+        if file.is_file():
+            print(file.relative_to(source))
+
+    GROUP_LEVEL = 2
+
+    files_grouped = {}
+
+    for file in files:
+        parts = file.relative_to(source).parts
+        group_key = "/".join(parts[:GROUP_LEVEL])
+        files_grouped.setdefault(group_key, []).append(file)
+
+    print(f"Grouping files by {GROUP_LEVEL} levels of directory structure...")
+    for files in files_grouped.values():
+        files.sort(key=lambda f: f.relative_to(source))
+
+    files_to_process = [file for group_key, files in files_grouped.items() for file in (files[:-keep] if keep else files)]
+
+    logger.info(f"Total files to process after keeping {keep} latest files in each group: {len(files_to_process)}")
+
+    return
+    with tqdm(
+        total=len(list(files)),
+        unit="files",
+        unit_scale=True,
+        desc="Moving files"
+    ) as progress:
+        for file in files:
+            shutil.move(str(file), os.path.join(dir_to_process, file.relative_to(source)))
+            progress.update(1)
+    return
+
     _prepare_files(
-        source_path = source_dir_path,
-        dir_to_process = dir_to_process,
+        dir_source_path = source_dir_path,
+        dir_process_path = dir_to_process,
         keep = keep
     )
 
     succeeded, failed = _export_files(
         directory_path = dir_to_process,
         directory_archive = dir_archive,
-        device_id=device_id,
+        source=source,
         connection_string=az_storage_connection_string,
         container_name=az_storage_container_name
     )

@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DEVICE_ID = os.getenv("AQ_DEVICE_ID")
+SOURCE = os.getenv("AQ_SOURCE")
 AZ_STORAGE_CONNECTION_STRING = os.getenv("AQ_AZ_STORAGE_CONNECTION_STRING")
 AZ_STORAGE_CONTAINER_NAME = os.getenv("AQ_AZ_STORAGE_CONTAINER_NAME")
 SOURCE_DIR_PATH = os.getenv("AQ_AZ_SOURCE_FILE_DIRECTORY_PATH")
