@@ -11,81 +11,84 @@ from pprint import pprint
 
 logger = logging.getLogger(__name__)
 
-def _prepare_files(dir_source_path:str, dir_process_path:str, keep:int = 1):
-    with os.scandir(dir_source_path) as entries:
-        sorted_entries = sorted(entries, key=lambda e: e.name)
-        entries_to_process = sorted_entries[:-keep] if keep else sorted_entries[:]
+# def _prepare_files(dir_source_path:str, dir_process_path:str, keep:int = 1):
+#     with os.scandir(dir_source_path) as entries:
+#         sorted_entries = sorted(entries, key=lambda e: e.name)
+#         entries_to_process = sorted_entries[:-keep] if keep else sorted_entries[:]
         
-        for entry in entries_to_process:
-            if not entry.is_file():
-                continue
-            shutil.move(entry.path, os.path.join(dir_process_path, entry.name))
-            logger.debug(f"Moved {entry.name} to {dir_process_path}.")
+#         for entry in entries_to_process:
+#             if not entry.is_file():
+#                 continue
+#             shutil.move(entry.path, os.path.join(dir_process_path, entry.name))
+#             logger.debug(f"Moved {entry.name} to {dir_process_path}.")
 
-def _export_file(entry:os.DirEntry[str], container_client:ContainerClient, device_id:str) -> bool:
-    name = entry.name
+# def _export_file(entry:os.DirEntry[str], container_client:ContainerClient, device_id:str) -> bool:
+#     name = entry.name
 
-    if len(name) < 12:
-        return False
+#     if len(name) < 12:
+#         return False
     
-    file_date = name[:10]
-    file_name = name[11:]
+#     file_date = name[:10]
+#     file_name = name[11:]
 
-    if file_date.count("-") != 2:
-        return False
+#     if file_date.count("-") != 2:
+#         return False
     
-    year, month, day = file_date.split("-")
+#     year, month, day = file_date.split("-")
 
-    blob_path = f"archive/device={device_id}/year={year}/month={month}/day={day}/{file_name[:-4]}.parquet"
+#     blob_path = f"archive/device={device_id}/year={year}/month={month}/day={day}/{file_name[:-4]}.parquet"
 
-    buffer = io.BytesIO()
-    df = pd.read_csv(entry)
-    df["timestamp"] = pd.to_datetime(df["timestamp"])
-    df = df.set_index("timestamp")
-    df.to_parquet(buffer, engine="pyarrow")
-    buffer.seek(0)
+#     buffer = io.BytesIO()
+#     df = pd.read_csv(entry)
+#     df["timestamp"] = pd.to_datetime(df["timestamp"])
+#     df = df.set_index("timestamp")
+#     df.to_parquet(buffer, engine="pyarrow")
+#     buffer.seek(0)
     
-    try:
-        # with open(entry.path, "rb") as data:
-        container_client.upload_blob(name=blob_path, data=buffer, overwrite=True)
-    except Exception as e:
-        logger.error(f"❌ Failed to upload blob: {e}")
-        return False
+#     try:
+#         # with open(entry.path, "rb") as data:
+#         container_client.upload_blob(name=blob_path, data=buffer, overwrite=True)
+#     except Exception as e:
+#         logger.error(f"❌ Failed to upload blob: {e}")
+#         return False
     
-    return True
+#     return True
 
-def _export_files(
-        directory_path:str, 
-        directory_archive:str,
-        connection_string:str,
-        container_name:str,
-        device_id:str 
-        ):
+# def _export_files(
+#         directory_path:str, 
+#         directory_archive:str,
+#         connection_string:str,
+#         container_name:str,
+#         device_id:str 
+#         ):
 
-    blob_service_client = BlobServiceClient.from_connection_string(connection_string)
-    container_client = blob_service_client.get_container_client(container_name)
+#     blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+#     container_client = blob_service_client.get_container_client(container_name)
 
-    succeeded = 0
-    failed = 0
+#     succeeded = 0
+#     failed = 0
 
-    with os.scandir(directory_path) as entries:
-        for entry in entries:
-            file_suffix_list = (".csv",)
-            if entry.is_file and not entry.name.startswith(".") and entry.name.endswith(file_suffix_list):
-                if not _export_file(
-                    entry=entry, 
-                    container_client=container_client,
-                    device_id=device_id
-                ):
-                    # move file to discard folder?
-                    logger.error(f"Error in exporting file {entry.name}")
-                    failed += 1
-                else:
-                    logger.info(f"successful upload of {entry.name}")
-                    shutil.move(entry.path, os.path.join(directory_archive, entry.name))
-                    logger.debug(f"Moved {entry.name} to {directory_archive}.")
-                    succeeded += 1
-    return succeeded, failed
+#     with os.scandir(directory_path) as entries:
+#         for entry in entries:
+#             file_suffix_list = (".csv",)
+#             if entry.is_file and not entry.name.startswith(".") and entry.name.endswith(file_suffix_list):
+#                 if not _export_file(
+#                     entry=entry, 
+#                     container_client=container_client,
+#                     device_id=device_id
+#                 ):
+#                     # move file to discard folder?
+#                     logger.error(f"Error in exporting file {entry.name}")
+#                     failed += 1
+#                 else:
+#                     logger.info(f"successful upload of {entry.name}")
+#                     shutil.move(entry.path, os.path.join(directory_archive, entry.name))
+#                     logger.debug(f"Moved {entry.name} to {directory_archive}.")
+#                     succeeded += 1
+#     return succeeded, failed
+
+def _export_file(blob_path:str, data:bytes, ):
+    pass
 
 def upload_files(
         source_dir_path:str, 
@@ -105,12 +108,10 @@ def upload_files(
 
     source = Path(source_dir_path)
     files = [f for f in source.rglob("*") if f.is_file()]
-    logger.info(f"Found {len(list(files))} files in source directory {source_dir_path}.")
-    for file in files:
-        if file.is_file():
-            print(file.relative_to(source))
+    files_num = len(files)
+    logger.debug(f"Found {files_num} files in source directory {source_dir_path}.")
 
-    GROUP_LEVEL = 2
+    GROUP_LEVEL = 2 # campaign, source | date, hour (?), file.sample
 
     files_grouped = {}
 
@@ -119,24 +120,32 @@ def upload_files(
         group_key = "/".join(parts[:GROUP_LEVEL])
         files_grouped.setdefault(group_key, []).append(file)
 
-    print(f"Grouping files by {GROUP_LEVEL} levels of directory structure...")
+    groups_num = len(files_grouped)
+
     for files in files_grouped.values():
         files.sort(key=lambda f: f.relative_to(source))
 
     files_to_process = [file for group_key, files in files_grouped.items() for file in (files[:-keep] if keep else files)]
+    files_to_process_num = len(files_to_process)
+    
+    logger.info(f"Total files to process after keeping {keep} latest files in each of {groups_num} groups: {files_to_process_num} ({files_num} - {files_num - files_to_process_num})")
 
-    logger.info(f"Total files to process after keeping {keep} latest files in each group: {len(files_to_process)}")
-
-    return
     with tqdm(
-        total=len(list(files)),
+        total=files_to_process_num,
         unit="files",
         unit_scale=True,
         desc="Moving files"
     ) as progress:
-        for file in files:
-            shutil.move(str(file), os.path.join(dir_to_process, file.relative_to(source)))
+        for file in files_to_process:
+            dest_path = os.path.join(dir_to_process, file.relative_to(source))
+            os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+            shutil.move(str(file), dest_path)
             progress.update(1)
+            logger.debug(f"({progress.n}/{progress.total}) Moved {file} to {dest_path} .")
+
+    
+
+
     return
 
     _prepare_files(
@@ -155,4 +164,4 @@ def upload_files(
     logger.info(f"Successfuly uploaded {succeeded} file(s), failed to upload {failed} file(s)  <--- <----")
 
 
-    
+    dafhbafskj
