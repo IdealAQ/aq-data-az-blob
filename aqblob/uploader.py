@@ -29,9 +29,41 @@ def _export_file(
         return False
     return True
 
-def upload_file() -> None:
-    # TODO: Implement the upload_file function to handle single file uploads if needed.
-    pass
+def upload_file(
+    file_path: str,
+    blob_path: str,
+    az_storage_connection_string: str,
+    az_storage_container_name: str,
+) -> None:
+    logger.info("Starting upload_file (single) process...")
+
+    file_path = Path(file_path)
+
+    try:
+        with BlobServiceClient.from_connection_string(
+            az_storage_connection_string
+        ) as blob_service_client:
+            container_client = blob_service_client.get_container_client(
+                az_storage_container_name
+            )
+
+            with file_path.open("rb") as data:
+                container_client.upload_blob(
+                    name=blob_path,
+                    data=data,
+                    overwrite=True,
+                )
+
+        logger.info("Successfully uploaded %s -> %s", file_path, blob_path)
+
+    except (AzureError, OSError) as e:
+        logger.error(
+            "Failed to upload %s -> %s: %s",
+            file_path,
+            blob_path,
+            e,
+        )
+        raise
 
 def upload_files(
     source_dir_path: str,
