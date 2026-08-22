@@ -17,7 +17,6 @@ def main():
     upload_files(
         source_dir_path = config.SOURCE_DIR_PATH,
         staging_dir_path = config.STAGING_DIR_PATH,
-        source = config.SOURCE,
         az_storage_connection_string = config.AZ_STORAGE_CONNECTION_STRING,
         az_storage_container_name = config.AZ_STORAGE_CONTAINER_NAME,
         keep = args.keep

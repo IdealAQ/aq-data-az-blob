@@ -1,5 +1,6 @@
 import os
 import io
+import time
 import pandas as pd
 import shutil
 from tqdm import tqdm
@@ -87,13 +88,12 @@ logger = logging.getLogger(__name__)
 #                     succeeded += 1
 #     return succeeded, failed
 
-def _export_file(blob_path:str, data:bytes, ):
+def _export_file(blob_path:str, file_path: Path):
     pass
 
 def upload_files(
         source_dir_path:str, 
         staging_dir_path:str,
-        source:str,
         az_storage_connection_string:str,
         az_storage_container_name:str,
         keep:int=1
@@ -106,8 +106,13 @@ def upload_files(
     os.makedirs(dir_to_process, exist_ok=True)
     os.makedirs(dir_archive, exist_ok=True)
 
-    source = Path(source_dir_path)
-    files = [f for f in source.rglob("*") if f.is_file()]
+    # paths
+    source_path = Path(source_dir_path)
+    process_path = Path(dir_to_process)
+    archive_path = Path(dir_archive)
+    
+    # locate files in source directory
+    files = [f for f in source_path.rglob("*") if f.is_file()]
     files_num = len(files)
     logger.debug(f"Found {files_num} files in source directory {source_dir_path}.")
 
@@ -116,14 +121,14 @@ def upload_files(
     files_grouped = {}
 
     for file in files:
-        parts = file.relative_to(source).parts
+        parts = file.relative_to(source_path).parts
         group_key = "/".join(parts[:GROUP_LEVEL])
         files_grouped.setdefault(group_key, []).append(file)
 
     groups_num = len(files_grouped)
 
     for files in files_grouped.values():
-        files.sort(key=lambda f: f.relative_to(source))
+        files.sort(key=lambda f: f.relative_to(source_path))
 
     files_to_process = [file for group_key, files in files_grouped.items() for file in (files[:-keep] if keep else files)]
     files_to_process_num = len(files_to_process)
@@ -137,13 +142,29 @@ def upload_files(
         desc="Moving files"
     ) as progress:
         for file in files_to_process:
-            dest_path = os.path.join(dir_to_process, file.relative_to(source))
+            dest_path = os.path.join(process_path, file.relative_to(source_path))
             os.makedirs(os.path.dirname(dest_path), exist_ok=True)
             shutil.move(str(file), dest_path)
             progress.update(1)
             logger.debug(f"({progress.n}/{progress.total}) Moved {file} to {dest_path} .")
 
-    
+    # locate files in processing directory
+    files_to_export = [f for f in process_path.rglob("*") if f.is_file()]
+    files_to_export_num = len(files_to_export)
+
+    PLATFORM_NAME = "test-platform-001"
+
+    with tqdm(
+        total=files_to_export_num,
+        unit="files",
+        unit_scale=True,
+        desc="Uploading files"
+    ) as progress:
+        for file in files_to_export:
+            relative_path = file.relative_to(process_path)
+            blob_path = f"platform={PLATFORM_NAME}/{relative_path}"
+            progress.update(1)
+            time.sleep(1) # Simulate upload time
 
 
     return
@@ -157,11 +178,8 @@ def upload_files(
     succeeded, failed = _export_files(
         directory_path = dir_to_process,
         directory_archive = dir_archive,
-        source=source,
+        source=source_path,
         connection_string=az_storage_connection_string,
         container_name=az_storage_container_name
     )
     logger.info(f"Successfuly uploaded {succeeded} file(s), failed to upload {failed} file(s)  <--- <----")
-
-
-    dafhbafskj
