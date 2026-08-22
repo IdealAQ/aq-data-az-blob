@@ -11,3 +11,8 @@ dependencies = [
     "pyarrow>=21.0.0",
     "tqdm>=4.70.0",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16.4",
+]

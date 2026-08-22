@@ -19,6 +19,7 @@ def main():
         staging_dir_path = config.STAGING_DIR_PATH,
         az_storage_connection_string = config.AZ_STORAGE_CONNECTION_STRING,
         az_storage_container_name = config.AZ_STORAGE_CONTAINER_NAME,
+        platform_name = config.AQ_PLATFORM_NAME,
         keep = args.keep
     )
 

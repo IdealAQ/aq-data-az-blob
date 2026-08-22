@@ -1,6 +1,8 @@
 # AQ blob upload and download scripts
 > These scripts use UTC time for all input, output, logs, and internal calculations.
 
+> **This README file is out of date and neets to be updated!**
+
 ## Installation
 ### ENV variables overview
 The following Environmental variables must be set. Setting them in .env file located in the project root directory is possible.
@@ -30,6 +32,8 @@ uv sync
 
 ## Files
 ### Naming
+> **Not valid anymore!!!**
+
 Files must be saved in a single directory and they must be named accordingly: `<datetime>_<fixed_digit_increment>.csv`.
 
 - `<datetime>` must be a date in `YYYY-MM-DD` (ISO 8601) format.
@@ -48,7 +52,7 @@ Scripts are located in the [scripts](./scripts/) directory.
 ### [upload_files.py](./scripts/upload_files.py)
 
 #### Required ENV variables
- `AQ_AZ_SOURCE_FILE_DIRECTORY_PATH`, `AQ_AZ_STAGING_DIRECTORY_PATH`, `AQ_SOURCE_ID`, `AQ_AZ_STORAGE_CONNECTION_STRING`, `AQ_AZ_STORAGE_CONTAINER_NAME`
+ `AQ_AZ_SOURCE_FILE_DIRECTORY_PATH`, `AQ_AZ_STAGING_DIRECTORY_PATH`, `AQ_PLATFORM_NAME`, `AQ_AZ_STORAGE_CONNECTION_STRING`, `AQ_AZ_STORAGE_CONTAINER_NAME`
 
 #### Arguments
 
