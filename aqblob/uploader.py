@@ -75,7 +75,6 @@ def upload_files(
     az_storage_connection_string: str,
     az_storage_container_name: str,
     suffixes: list[str],
-    platform_name: str | None = None,
     keep: int = 1,
     limit: int = 1000,
 ) -> None:
@@ -98,7 +97,7 @@ def upload_files(
     files_num = len(files)
     logger.info(f"Found {files_num} files ({','.join(suffixes)}) in source directory {source_dir_path}.")
 
-    GROUP_LEVEL = 2  # campaign, source | date, hour (?), file.sample
+    GROUP_LEVEL = 3  # campaign, platform, source | date, hour (?), file.sample
 
     files_grouped = {}
 
@@ -162,8 +161,7 @@ def upload_files(
         )
         for file in files_to_export:
             relative_path = file.relative_to(process_path)
-            blob_path = f"platform={platform_name}/{relative_path}" if platform_name else relative_path
-
+            blob_path = f"{relative_path}"
             if _export_file(
                 blob_path=blob_path, file_path=file, container_client=container_client
             ):  

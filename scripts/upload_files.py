@@ -26,7 +26,6 @@ def main():
         az_storage_connection_string = config.AZ_STORAGE_CONNECTION_STRING,
         az_storage_container_name = config.AZ_STORAGE_CONTAINER_NAME,
         suffixes = config.FILE_SUFFIXES,
-        platform_name = config.AQ_PLATFORM_NAME,
         keep = args.keep,
         limit = args.limit
     )
