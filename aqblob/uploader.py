@@ -108,7 +108,7 @@ def upload_files(
     files_to_process = [
         file
         for _, files in files_grouped.items()
-        for file in ((files[:-keep])[:limit])
+        for file in ((files[:-keep])[:limit] if keep > 0 else files[:limit])
     ]
 
     files_to_process_num = len(files_to_process)

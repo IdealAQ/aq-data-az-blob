@@ -53,7 +53,13 @@ Scripts are located in the [scripts](./scripts/) directory.
 | Argument | Type | Default | Description|
 |----------|------|---------|------------|
 |`--keep` `-k`|int|`1`|Number of the newest files to ingnore in each directory|
-|`--limit` `-l`|int|`1000`|Max. number of oldest files to upload in each directory|
+|`--limit` `-l`|int|`1000`|Max. number of oldest files to include in each directory|
+
+**sequence:**
+1. **Step 1:** move files from `AQ_AZ_SOURCE_FILE_DIRECTORY_PATH` to `AQ_AZ_STAGING_DIRECTORY_PATH`
+2. **Step 2:** upload files from `AQ_AZ_STAGING_DIRECTORY_PATH` to Azure Storage
+
+\* `--keep` and `--limit` affect only step 1
 
 
 #### Use
