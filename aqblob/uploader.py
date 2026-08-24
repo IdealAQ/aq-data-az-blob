@@ -20,7 +20,8 @@ def _export_file(
                 name=blob_path,
                 data=data,
                 overwrite=True,
-                timeout=600
+                timeout=600,
+                max_concurrency=1,
             )
     except (AzureError, OSError) as e:
         logger.error("Failed to upload %s: %s", file_path, e)
@@ -144,7 +145,10 @@ def upload_files(
 
     with (
         BlobServiceClient.from_connection_string(
-            az_storage_connection_string
+            az_storage_connection_string,
+            connection_timeout=600,
+            max_block_size=1024 * 1024,       # 1 MiB
+            max_single_put_size=1024 * 1024,  # force block upload for >1 MiB
         ) as blob_service_client,
         tqdm(
             total=files_to_export_num,
