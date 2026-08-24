@@ -1,7 +1,4 @@
 import os
-import io
-import time
-import pandas as pd
 import shutil
 from tqdm import tqdm
 from pathlib import Path
@@ -68,11 +65,14 @@ def upload_file(
 def upload_files(
     source_dir_path: str,
     staging_dir_path: str,
-    platform_name: str,
     az_storage_connection_string: str,
     az_storage_container_name: str,
+    suffixes: list[str],
+    platform_name: str | None = None,
     keep: int = 1,
+    limit: int = 1000,
 ) -> None:
+    logging.getLogger("azure").setLevel(logging.WARNING)
     logger.info("Starting upload_files process... <--- <----")
     dir_to_process = f"{staging_dir_path}/to_process"
     dir_archive = f"{staging_dir_path}/archive"
@@ -87,9 +87,9 @@ def upload_files(
     archive_path = Path(dir_archive)
 
     # locate files in source directory
-    files = [f for f in source_path.rglob("*") if f.is_file()]
+    files = [f for f in source_path.rglob("*") if f.is_file() and any(str(f).endswith(suffix) for suffix in suffixes)]
     files_num = len(files)
-    logger.debug(f"Found {files_num} files in source directory {source_dir_path}.")
+    logger.info(f"Found {files_num} files ({','.join(suffixes)}) in source directory {source_dir_path}.")
 
     GROUP_LEVEL = 2  # campaign, source | date, hour (?), file.sample
 
@@ -103,17 +103,18 @@ def upload_files(
     groups_num = len(files_grouped)
 
     for files in files_grouped.values():
-        files.sort(key=lambda f: f.relative_to(source_path))
+        files.sort(key=lambda f: f.relative_to(source_path))        
 
     files_to_process = [
         file
-        for group_key, files in files_grouped.items()
-        for file in (files[:-keep] if keep else files)
+        for _, files in files_grouped.items()
+        for file in ((files[:-keep])[:limit])
     ]
+
     files_to_process_num = len(files_to_process)
 
     logger.info(
-        f"Total files to process after keeping {keep} latest files in each of {groups_num} groups: {files_to_process_num} ({files_num} - {files_num - files_to_process_num})"
+        f"Total files to process after keeping {keep} latest files and limiting to {limit if limit is not None else 'all'} in each of {groups_num} groups: {files_to_process_num} ({files_num} - {files_num - files_to_process_num})"
     )
 
     with tqdm(
@@ -129,7 +130,7 @@ def upload_files(
             )
 
     # locate files in processing directory
-    files_to_export = [f for f in process_path.rglob("*") if f.is_file()]
+    files_to_export = [f for f in process_path.rglob("*") if f.is_file() and any(str(f).endswith(suffix) for suffix in suffixes)]
     files_to_export_num = len(files_to_export)
 
     success_count = 0
@@ -151,7 +152,7 @@ def upload_files(
         )
         for file in files_to_export:
             relative_path = file.relative_to(process_path)
-            blob_path = f"platform={platform_name}/{relative_path}"
+            blob_path = f"platform={platform_name}/{relative_path}" if platform_name else relative_path
 
             if _export_file(
                 blob_path=blob_path, file_path=file, container_client=container_client
