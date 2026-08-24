@@ -39,7 +39,10 @@ def upload_file(
 
     try:
         with BlobServiceClient.from_connection_string(
-            az_storage_connection_string
+            az_storage_connection_string,
+            connection_timeout=600,
+            max_block_size=1024 * 1024,       # 1 MiB
+            max_single_put_size=1024 * 1024,  # force block upload for >1 MiB
         ) as blob_service_client:
             container_client = blob_service_client.get_container_client(
                 az_storage_container_name
@@ -50,7 +53,8 @@ def upload_file(
                     name=blob_path,
                     data=data,
                     overwrite=True,
-                    timeout=600
+                    timeout=600,
+                    max_concurrency=1,
                 )
 
         logger.info("Successfully uploaded %s -> %s", file_path, blob_path)
