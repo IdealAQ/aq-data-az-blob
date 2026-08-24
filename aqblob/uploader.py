@@ -20,6 +20,7 @@ def _export_file(
                 name=blob_path,
                 data=data,
                 overwrite=True,
+                timeout=600
             )
     except (AzureError, OSError) as e:
         logger.error("Failed to upload %s: %s", file_path, e)
@@ -49,6 +50,7 @@ def upload_file(
                     name=blob_path,
                     data=data,
                     overwrite=True,
+                    timeout=600
                 )
 
         logger.info("Successfully uploaded %s -> %s", file_path, blob_path)
