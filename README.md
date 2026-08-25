@@ -14,8 +14,7 @@ The following Environmental variables must be set. Setting them in .env file loc
 |`AQ_AZ_DOWNLOADED_DIR_PATH`|path to the directory where files are downloaded from azure|`/Users/rohal/projects/aq/local/aq-data-az-blob/downloaded`|
 |`AQ_AZ_STAGING_DIRECTORY_PATH`|path to the directory used by the script for file manipulation and local archiving|`/Users/rohal/projects/aq/local/aq-data-az-blob/staging`|
 |`AQ_AZ_STORAGE_CONNECTION_STRING`|connection string from azure storage account|_never ever share this_|
-|`AQ_AZ_STORAGE_CONTAINER_NAME`|azure storage container name|`measures-archive`|
-|`AQ_AZ_PLATFORM_NAME`|name/id of mounting point|`platform-001`|
+|`AQ_AZ_STORAGE_CONTAINER_NAME`|azure storage container name|`raw-sound`|
 |`AQ_AZ_FILE_SUFFIXES`|comma-separated list of file suffixes|`.flac,.wav`|
 
 
@@ -45,7 +44,6 @@ Scripts are located in the [scripts](./scripts/) directory.
 `AQ_AZ_SOURCE_FILE_DIRECTORY_PATH`,`AQ_AZ_STAGING_DIRECTORY_PATH`,
 `AQ_AZ_STORAGE_CONNECTION_STRING`,
 `AQ_AZ_STORAGE_CONTAINER_NAME`,
-`AQ_AZ_PLATFORM_NAME`,
 `AQ_AZ_FILE_SUFFIXES`
 
 #### Arguments
@@ -65,7 +63,7 @@ Scripts are located in the [scripts](./scripts/) directory.
 #### Use
 > **NOTE:** run as a module (use `-m` flag)
 
-To upload all files **except the newest one** in directory specified in `AQ_AZ_SOURCE_FILE_DIRECTORY_PATH` ENV variable:
+To upload all files **except the newest one** (max 1000 or `-l`) in each terminal subdirectory of root specified in `AQ_AZ_SOURCE_FILE_DIRECTORY_PATH` ENV variable:
 ```bash
 uv run python -m scripts.upload_files
 ```
@@ -76,33 +74,57 @@ To upload **all** files in directory specified in `AQ_AZ_SOURCE_FILE_DIRECTORY_P
 uv run python -m scripts.upload_files -k 0 # be careful to not run it when a file is being written into!
 ```
 
-### [download_files.py](./scripts/download_files.py)
+### [list_blobs.py](./scripts/list_blobs.py)
 #### Description
-> Outdated!!!
-
-Downloads files from Azure storage service.
+Lists files from Azure storage service.
 
 #### Required ENV variables
-`AQ_AZ_DOWNLOADED_DIR_PATH`, `AQ_AZ_STORAGE_CONNECTION_STRING`, `AQ_AZ_STORAGE_CONTAINER_NAME`, `AQ_AZ_FILE_SUFFIXES`
+`AQ_BLOB_LOG_DIRECTORY_PATH`,
+`AQ_AZ_DOWNLOADED_DIR_PATH`,
+`AQ_AZ_STORAGE_CONNECTION_STRING`,
+`AQ_AZ_FILE_SUFFIXES`
 
 #### Arguments
 
 | Argument | Type | Default | Description|
 |----------|------|---------|------------|
-|`--id`|string|_required_|Device identifier to filter files for download.|
-|`--year`|int|_required_|Year to filter files for download.|
-|`--month`|int|_required_|Month to filter files for download.|
-|`--day`|int|_required_|Day to filter files for download.|
+|`-p`, `--prefix`|string|_required_|Prefix of the blobs to download.|
+|`-c`, `--container`|string|env `AQ_AZ_STORAGE_CONTAINER_NAME`|Azure Storage container name (default: from config).|
 
 #### Use
 > **NOTE:** run as a module (use `-m` flag)
 
-To download files from device test-001 produced on 2025-12-08, run:
+To download files from campaign none-001 and platform scooter-001, run:
 ```bash
-uv run python -m scripts.download_files --id="test-001" --year=2025 --month=12 --day=8
+uv run python -m scripts.download_blobs -p="campaign=none-001/platform=scooter-001/" -c="raw-sound"
+```
+
+### [download_blobs.py](./scripts/download_blobs.py)
+#### Description
+Downloads files from Azure storage service.
+
+#### Required ENV variables
+`AQ_BLOB_LOG_DIRECTORY_PATH`,
+`AQ_AZ_STORAGE_CONNECTION_STRING`
+
+#### Arguments
+
+| Argument | Type | Default | Description|
+|----------|------|---------|------------|
+|`-p`, `--prefix`|string|_required_|Prefix of the blobs to download.|
+|`-c`, `--container`|string|env `AQ_AZ_STORAGE_CONTAINER_NAME`|Azure Storage container name (default: from config).|
+
+#### Use
+> **NOTE:** run as a module (use `-m` flag)
+
+To download files from campaign none-001 and platform scooter-001, run:
+```bash
+uv run python -m scripts.list_blobs -p="campaign=none-001/platform=scooter-001/" -c="raw-sound"
 ```
 
 ### [parquet_to_csv.py](./scripts/upload_files.py)
+> **Outdated**
+
 #### Description
 Convert Parquet file to CSV.
 
