@@ -11,16 +11,23 @@ def main():
         help = "Number of latest files to ignore (default: -1 for the latest file - being written into).",
         default = 1
     )
+    parser.add_argument(
+            "-l", "--limit",
+            type = int,             
+            required = False,        
+            help = "Limit the number of files per directory to upload (default: 1000).",
+            default = 1000
+        )
 
-    args = parser.parse_args()
-
+    args = parser.parse_args()    
     upload_files(
         source_dir_path = config.SOURCE_DIR_PATH,
         staging_dir_path = config.STAGING_DIR_PATH,
-        device_id = config.DEVICE_ID,
         az_storage_connection_string = config.AZ_STORAGE_CONNECTION_STRING,
         az_storage_container_name = config.AZ_STORAGE_CONTAINER_NAME,
-        keep = args.keep
+        suffixes = config.FILE_SUFFIXES,
+        keep = args.keep,
+        limit = args.limit
     )
 
 if __name__ == "__main__":

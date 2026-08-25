@@ -7,6 +7,12 @@ requires-python = ">=3.13"
 dependencies = [
     "azure-storage-blob>=12.26.0",
     "dotenv>=0.9.9",
-    "pandas>=2.3.2",
+    "pandas>=3.0.5",
     "pyarrow>=21.0.0",
+    "tqdm>=4.70.0",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16.4",
 ]
