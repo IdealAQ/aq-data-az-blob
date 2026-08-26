@@ -3,3 +3,4 @@
 files/
 local/
 *.egg-info/*
+.coverage

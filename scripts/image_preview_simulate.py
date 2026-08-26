@@ -7,19 +7,21 @@ import time
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Upload camera preview to Azure Storage.")
+    parser = argparse.ArgumentParser(
+        description="Upload camera preview to Azure Storage."
+    )
     parser.add_argument(
         "--directory",
-        type = str,             
-        required = True,        
-        help = "Directory containing images to upload"
+        type=str,
+        required=True,
+        help="Directory containing images to upload",
     )
     parser.add_argument(
         "--interval",
         type=int,
-        required = False,
+        required=False,
         help="Interval in seconds used to rotate uploaded image.",
-        default=10
+        default=10,
     )
 
     args = parser.parse_args()
@@ -37,10 +39,14 @@ def main():
     logging.info(f"loaded {len(images)} images in {args.directory}")
 
     az_storage_connection_string = config.AZ_STORAGE_CONNECTION_STRING
-    az_storage_container_name = "camera" # kept hardcoded for now
+    az_storage_container_name = "camera"  # kept hardcoded for now
 
-    blob_service_client = BlobServiceClient.from_connection_string(az_storage_connection_string)
-    container_client = blob_service_client.get_container_client(az_storage_container_name)
+    blob_service_client = BlobServiceClient.from_connection_string(
+        az_storage_connection_string
+    )
+    container_client = blob_service_client.get_container_client(
+        az_storage_container_name
+    )
 
     CAM1_PREVIEW_PATH = "preview/cam1.jpg"
 
@@ -53,7 +59,7 @@ def main():
                 print(f"uploaded {image.name} to {CAM1_PREVIEW_PATH} blob")
                 print(f"sleeping {args.interval} seconds")
                 time.sleep(args.interval)
-    
+
     except KeyboardInterrupt:
         logging.info("Shutting down gracefully (Ctrl+C)")
 
