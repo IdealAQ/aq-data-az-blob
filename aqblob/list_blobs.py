@@ -4,6 +4,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 def list_blobs(
     az_storage_connection_string: str,
     az_storage_container_name: str,

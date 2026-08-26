@@ -28,6 +28,7 @@ def _export_file(
         return False
     return True
 
+
 def upload_file(
     file_path: str,
     blob_path: str,
@@ -42,7 +43,7 @@ def upload_file(
         with BlobServiceClient.from_connection_string(
             az_storage_connection_string,
             connection_timeout=600,
-            max_block_size=1024 * 1024,       # 1 MiB
+            max_block_size=1024 * 1024,  # 1 MiB
             max_single_put_size=1024 * 1024,  # force block upload for >1 MiB
         ) as blob_service_client:
             container_client = blob_service_client.get_container_client(
@@ -69,6 +70,7 @@ def upload_file(
         )
         raise
 
+
 def upload_files(
     source_dir_path: str,
     staging_dir_path: str,
@@ -93,9 +95,15 @@ def upload_files(
     archive_path = Path(dir_archive)
 
     # locate files in source directory
-    files = [f for f in source_path.rglob("*") if f.is_file() and any(str(f).endswith(suffix) for suffix in suffixes)]
+    files = [
+        f
+        for f in source_path.rglob("*")
+        if f.is_file() and any(str(f).endswith(suffix) for suffix in suffixes)
+    ]
     files_num = len(files)
-    logger.info(f"Found {files_num} files ({','.join(suffixes)}) in source directory {source_dir_path}.")
+    logger.info(
+        f"Found {files_num} files ({','.join(suffixes)}) in source directory {source_dir_path}."
+    )
 
     GROUP_LEVEL = 3  # campaign, platform, source | date, hour (?), file.sample
 
@@ -109,7 +117,7 @@ def upload_files(
     groups_num = len(files_grouped)
 
     for files in files_grouped.values():
-        files.sort(key=lambda f: f.relative_to(source_path))        
+        files.sort(key=lambda f: f.relative_to(source_path))
 
     files_to_process = [
         file
@@ -136,7 +144,11 @@ def upload_files(
             )
 
     # locate files in processing directory
-    files_to_export = [f for f in process_path.rglob("*") if f.is_file() and any(str(f).endswith(suffix) for suffix in suffixes)]
+    files_to_export = [
+        f
+        for f in process_path.rglob("*")
+        if f.is_file() and any(str(f).endswith(suffix) for suffix in suffixes)
+    ]
     files_to_export_num = len(files_to_export)
 
     success_count = 0
@@ -146,7 +158,7 @@ def upload_files(
         BlobServiceClient.from_connection_string(
             az_storage_connection_string,
             connection_timeout=600,
-            max_block_size=1024 * 1024,       # 1 MiB
+            max_block_size=1024 * 1024,  # 1 MiB
             max_single_put_size=1024 * 1024,  # force block upload for >1 MiB
         ) as blob_service_client,
         tqdm(
@@ -164,7 +176,7 @@ def upload_files(
             blob_path = f"{relative_path}"
             if _export_file(
                 blob_path=blob_path, file_path=file, container_client=container_client
-            ):  
+            ):
                 dest_path = os.path.join(archive_path, relative_path)
                 os.makedirs(os.path.dirname(dest_path), exist_ok=True)
                 shutil.move(str(file), dest_path)

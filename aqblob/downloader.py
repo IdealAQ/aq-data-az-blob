@@ -7,6 +7,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 def list_local_files(
     directory_path: str,
     prefix: str,
@@ -28,10 +29,14 @@ def list_local_files(
     if not source_path_prefix.exists():
         logger.warning(f"Directory {source_path_prefix} does not exist.")
         return []
-    files = [str(f.relative_to(source_path)) for f in source_path_prefix.rglob("*") if f.is_file() and any(str(f).endswith(suffix) for suffix in suffixes)]
+    files = [
+        str(f.relative_to(source_path))
+        for f in source_path_prefix.rglob("*")
+        if f.is_file() and any(str(f).endswith(suffix) for suffix in suffixes)
+    ]
 
     return files
-    
+
 
 def download_files(
     downloaded_dir_path: str,
@@ -49,7 +54,6 @@ def download_files(
     with BlobServiceClient.from_connection_string(
         az_storage_connection_string
     ) as blob_service_client:
-
         container_client = blob_service_client.get_container_client(
             az_storage_container_name
         )
@@ -57,7 +61,7 @@ def download_files(
         blobs_all = container_client.list_blobs(name_starts_with=prefix)
         blobs_all = [blob for blob in blobs_all if blob.name.endswith(allowed_suffixes)]
         blobs = blobs_all
-        
+
         if skip_existing:
             existing_files = list_local_files(
                 directory_path=downloaded_dir_path,
@@ -71,8 +75,10 @@ def download_files(
             logger.info("No new blobs found to download.")
             return
 
-        logger.info(f"Found {len(blobs)} blobs to download. Skipping {len(blobs_all) - len(blobs)} existing files.")
-        
+        logger.info(
+            f"Found {len(blobs)} blobs to download. Skipping {len(blobs_all) - len(blobs)} existing files."
+        )
+
         for blob in tqdm(
             blobs,
             desc="Downloading files",
@@ -80,10 +86,7 @@ def download_files(
         ):
             try:
                 # Preserve the complete blob path.
-                local_file_path = (
-                    Path(downloaded_dir_path)
-                    / Path(blob.name)
-                )
+                local_file_path = Path(downloaded_dir_path) / Path(blob.name)
 
                 # Create parent directories.
                 local_file_path.parent.mkdir(
@@ -94,13 +97,9 @@ def download_files(
                 blob_client = container_client.get_blob_client(blob.name)
 
                 with local_file_path.open("wb") as file:
-                    file.write(
-                        blob_client.download_blob().readall()
-                    )
+                    file.write(blob_client.download_blob().readall())
 
                 logger.debug(f"Downloaded blob: {blob.name}")
 
             except Exception:
-                logger.exception(
-                    f"Failed to download blob: {blob.name}"
-                )
+                logger.exception(f"Failed to download blob: {blob.name}")
