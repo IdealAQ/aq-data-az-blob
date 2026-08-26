@@ -102,8 +102,8 @@ Lists files from Azure storage service.
 
 #### Required ENV variables
 `AQ_BLOB_LOG_DIRECTORY_PATH`,
-`AQ_AZ_DOWNLOADED_DIR_PATH`,
 `AQ_AZ_STORAGE_CONNECTION_STRING`,
+`AQ_AZ_STORAGE_CONTAINER_NAME`,
 `AQ_AZ_FILE_SUFFIXES`
 
 #### Arguments
@@ -127,7 +127,10 @@ Downloads files from Azure storage service into directory structure matching the
 
 #### Required ENV variables
 `AQ_BLOB_LOG_DIRECTORY_PATH`,
-`AQ_AZ_STORAGE_CONNECTION_STRING`
+`AQ_AZ_STORAGE_CONNECTION_STRING`,
+`AQ_AZ_STORAGE_CONTAINER_NAME`,
+`AQ_AZ_DOWNLOADED_DIR_PATH`,
+`AQ_AZ_FILE_SUFFIXES`
 
 #### Arguments
 
