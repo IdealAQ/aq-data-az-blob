@@ -30,7 +30,6 @@ uv sync
 ```
 
 ## Files
-
 The suggested local file structure is shown below. In this example, `raw-sound` is the root directory specified by `AQ_AZ_SOURCE_FILE_DIRECTORY_PATH`. On Linux, you can run `pwd` from the `raw-sound` directory to get the path to use for `AQ_AZ_SOURCE_FILE_DIRECTORY_PATH`.
 
 ```text
@@ -83,17 +82,15 @@ Uploads files in subfolders of specified root. The paths of the uploaded blobs m
 
 
 #### Use
-> **NOTE:** run as a module (use `-m` flag)
-
 To upload all files **except the newest one** (max 1000 or `-l`) in each terminal subdirectory of root specified in `AQ_AZ_SOURCE_FILE_DIRECTORY_PATH` ENV variable:
 ```bash
-uv run python -m scripts.upload_files
+uv run upload
 ```
 The script above prevents the file that is being writen into to be uploaded _(if file naming convention is followed)_.
 
 To upload **all** files in directory specified in `AQ_AZ_SOURCE_FILE_DIRECTORY_PATH` ENV variable:
 ```bash
-uv run python -m scripts.upload_files -k 0 # be careful to not run it when a file is being written into!
+uv run upload -k 0 # be careful to not run it when a file is being written into!
 ```
 
 ### [list_blobs.py](./scripts/list_blobs.py)
@@ -114,11 +111,9 @@ Lists files from Azure storage service.
 |`-c`, `--container`|string|env `AQ_AZ_STORAGE_CONTAINER_NAME`|Azure Storage container name (default: from config).|
 
 #### Use
-> **NOTE:** run as a module (use `-m` flag)
-
 To download files from campaign none-001 and platform scooter-001, run:
 ```bash
-uv run python -m scripts.download_blobs -p="campaign=none-001/platform=scooter-001/" -c="raw-sound"
+uv run list -p="campaign=none-001/platform=scooter-001/" -c="raw-sound"
 ```
 
 ### [download_blobs.py](./scripts/download_blobs.py)
@@ -146,12 +141,12 @@ Downloads files from Azure storage service into directory structure matching the
 
 To download files from campaign none-001 and platform scooter-001, run:
 ```bash
-uv run python -m scripts.list_blobs -p="campaign=none-001/platform=scooter-001/" -c="raw-sound"
+uv run download -p="campaign=none-001/platform=scooter-001/" -c="raw-sound"
 ```
 
 To redownload existing files, run:
 ```bash
-uv run python -m scripts.list_blobs -p="campaign=none-001/platform=scooter-001/" -c="raw-sound" -f
+uv run python download -p="campaign=none-001/platform=scooter-001/" -c="raw-sound" -f
 ```
 
 ### [parquet_to_csv.py](./scripts/upload_files.py)

@@ -13,7 +13,7 @@ resolution-markers = [
 [[package]]
 name = "aq-data-az-blob"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "azure-storage-blob" },
     { name = "dotenv" },

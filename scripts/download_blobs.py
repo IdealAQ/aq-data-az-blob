@@ -30,10 +30,9 @@ def parse_args():
 def main():
     args = parse_args()
 
-    prefix = args.prefix
     download_files(
         downloaded_dir_path = config.DOWNLOADED_DIR_PATH,
-        prefix=prefix,
+        prefix=args.prefix,
         suffixes=config.FILE_SUFFIXES,
         az_storage_connection_string = config.AZ_STORAGE_CONNECTION_STRING,
         az_storage_container_name = args.container,
