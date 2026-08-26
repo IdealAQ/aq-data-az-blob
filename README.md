@@ -1,7 +1,5 @@
 # AQ blob upload and download scripts
-> These scripts use UTC time for all input, output, logs, and internal calculations.
-
-> **This README file is out of date and neets to be updated!**
+> These scripts use UTC time for all inputs, outputs, and internal calculations.
 
 ## Installation
 ### ENV variables overview
@@ -14,14 +12,14 @@ The following Environmental variables must be set. Setting them in .env file loc
 |`AQ_AZ_DOWNLOADED_DIR_PATH`|path to the directory where files are downloaded from azure|`/Users/rohal/projects/aq/local/aq-data-az-blob/downloaded`|
 |`AQ_AZ_STAGING_DIRECTORY_PATH`|path to the directory used by the script for file manipulation and local archiving|`/Users/rohal/projects/aq/local/aq-data-az-blob/staging`|
 |`AQ_AZ_STORAGE_CONNECTION_STRING`|connection string from azure storage account|_never ever share this_|
-|`AQ_AZ_STORAGE_CONTAINER_NAME`|azure storage container name|`raw-sound`|
+|`AQ_AZ_STORAGE_CONTAINER_NAME`|azure storage container name - must match existing container name|`raw-sound`|
 |`AQ_AZ_FILE_SUFFIXES`|comma-separated list of file suffixes|`.flac,.wav`|
 
 
 ### Virtual environment
 Use [uv](https://docs.astral.sh/uv/) to create virtual environment, install necessary packages and run the scripts.
 
-install UV
+install UV (mac/linux)
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
@@ -32,12 +30,32 @@ uv sync
 ```
 
 ## Files
-TODO:
+
+The suggested local file structure is shown below. In this example, `raw-sound` is the root directory specified by `AQ_AZ_SOURCE_FILE_DIRECTORY_PATH`. On Linux, you can run `pwd` from the `raw-sound` directory to get the path to use for `AQ_AZ_SOURCE_FILE_DIRECTORY_PATH`.
+
+```text
+raw-sound/                                       # Local root directory
+└── campaign=helsinki-spring-2026/               # <campaign-name>
+    └── platform=scooter-001/                    # <platform-name>
+        └── source=microphone-001/               # <source-name>
+            └── date=2026-03-18/
+                ├── 16-22-56.wav
+                ├── 16-30-00.wav
+                └── 16-40-00.wav
+```
+The local file:<br>
+`raw-sound/campaign=helsinki-spring-2026/platform=scooter-001/source=microphone-001/date=2026-03-18/16-22-56.wav`<br>
+corresponds to the following Azure Blob Storage blob path:<br>
+`campaign=helsinki-spring-2026/platform=scooter-001/source=microphone-001/date=2026-03-18/16-22-56.wav`.
+
+It is reccomended to name the root directory the same as the container name. In this case, `raw-sound` would be the name of the Azure Blob container specified in env variable `AQ_AZ_STORAGE_CONTAINER_NAME`. 
 
 ## scripts
 Scripts are located in the [scripts](./scripts/) directory.
 
 ### [upload_files.py](./scripts/upload_files.py)
+#### Description
+Uploads files in subfolders of specified root. The paths of the uploaded blobs match the relative paths of the uploaded files from the root directory.
 
 #### Required ENV variables
 `AQ_BLOB_LOG_DIRECTORY_PATH`,
@@ -101,7 +119,7 @@ uv run python -m scripts.download_blobs -p="campaign=none-001/platform=scooter-0
 
 ### [download_blobs.py](./scripts/download_blobs.py)
 #### Description
-Downloads files from Azure storage service.
+Downloads files from Azure storage service into directory structure matching the file's prefixes.
 
 #### Required ENV variables
 `AQ_BLOB_LOG_DIRECTORY_PATH`,
