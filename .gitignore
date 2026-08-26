@@ -2,3 +2,4 @@
 *__pycache__
 files/
 local/
+*.egg-info/*
