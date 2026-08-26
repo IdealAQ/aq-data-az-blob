@@ -53,6 +53,7 @@ The file name should be the UTC timestamp of the start of the contained data, in
 
 ## scripts
 Scripts are located in the [scripts](./scripts/) directory.
+> An alternative way to run sripts is `uv run python -m scripts.<script_name>` (i.e. `uv run python -m scripts.upload_files` instead of `uv run upload`).
 
 ### [upload_files.py](./scripts/upload_files.py)
 #### Description
@@ -146,7 +147,7 @@ uv run download -p="campaign=none-001/platform=scooter-001/" -c="raw-sound"
 
 To redownload existing files, run:
 ```bash
-uv run python download -p="campaign=none-001/platform=scooter-001/" -c="raw-sound" -f
+uv run download -p="campaign=none-001/platform=scooter-001/" -c="raw-sound" -f
 ```
 
 ### [parquet_to_csv.py](./scripts/upload_files.py)
