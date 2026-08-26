@@ -131,6 +131,8 @@ Downloads files from Azure storage service into directory structure matching the
 |----------|------|---------|------------|
 |`-p`, `--prefix`|string|_required_|Prefix of the blobs to download.|
 |`-c`, `--container`|string|env `AQ_AZ_STORAGE_CONTAINER_NAME`|Azure Storage container name (default: from config).|
+|`-f`, `--force`|flag||Overwrite existing files locally.|
+
 
 #### Use
 > **NOTE:** run as a module (use `-m` flag)
@@ -138,6 +140,11 @@ Downloads files from Azure storage service into directory structure matching the
 To download files from campaign none-001 and platform scooter-001, run:
 ```bash
 uv run python -m scripts.list_blobs -p="campaign=none-001/platform=scooter-001/" -c="raw-sound"
+```
+
+To redownload existing files, run:
+```bash
+uv run python -m scripts.list_blobs -p="campaign=none-001/platform=scooter-001/" -c="raw-sound" -f
 ```
 
 ### [parquet_to_csv.py](./scripts/upload_files.py)
