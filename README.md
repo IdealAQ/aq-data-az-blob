@@ -48,7 +48,9 @@ The local file:<br>
 corresponds to the following Azure Blob Storage blob path:<br>
 `campaign=helsinki-spring-2026/platform=scooter-001/source=microphone-001/date=2026-03-18/16-22-56.wav`.
 
-It is reccomended to name the root directory the same as the container name. In this case, `raw-sound` would be the name of the Azure Blob container specified in env variable `AQ_AZ_STORAGE_CONTAINER_NAME`. 
+It is reccomended to name the root directory the same as the container name. In this case, `raw-sound` would be the name of the Azure Blob container specified in env variable `AQ_AZ_STORAGE_CONTAINER_NAME`.
+
+The file name should be the UTC timestamp of the start of the contained data, in `hh-mm-ss` format, unless otherwise required.
 
 ## scripts
 Scripts are located in the [scripts](./scripts/) directory.
@@ -70,6 +72,8 @@ Uploads files in subfolders of specified root. The paths of the uploaded blobs m
 |----------|------|---------|------------|
 |`--keep` `-k`|int|`1`|Number of the newest files to ingnore in each directory|
 |`--limit` `-l`|int|`1000`|Max. number of oldest files to include in each directory|
+
+\* **Note:** `--keep` relies on the filename/path following naming pattern which keeps newst files to be last when file paths are sorted. Example: `.../date=yyyy-mm-dd/hh-mm-ss.suffix`.
 
 **sequence:**
 1. **Step 1:** move files from `AQ_AZ_SOURCE_FILE_DIRECTORY_PATH` to `AQ_AZ_STAGING_DIRECTORY_PATH`
