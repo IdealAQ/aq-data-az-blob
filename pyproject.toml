@@ -16,3 +16,15 @@ dependencies = [
 dev = [
     "ruff>=0.16.4",
 ]
+
+[tool.uv]
+package = true
+
+[tool.setuptools.packages.find]
+include = ["aqblob*", "scripts*"]
+
+[project.scripts]
+upload_files = "scripts.upload_files:main"
+download = "scripts.download_blobs:main"
+list = "scripts.list_blobs:main"
+
