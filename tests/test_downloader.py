@@ -46,12 +46,6 @@ def test_download_files_overwrites_existing(container_client, tmp_path):
 
     assert file.read_bytes() == b"aaa data"
 
-def test_download_files_filters_by_prefix(container_client, tmp_path):
-    assert False
-
-def test_download_files_filters_by_suffix(container_client, tmp_path):
-    assert False
-
 def test_download_files_with_no_matching_blobs(container_client, tmp_path):
     download_files(
         container_client=container_client,
@@ -62,3 +56,17 @@ def test_download_files_with_no_matching_blobs(container_client, tmp_path):
     )
 
     assert list(tmp_path.rglob("*")) == []
+
+def test_download_multiple_suffixes(container_client, tmp_path):
+    download_files(
+            container_client=container_client,
+            downloaded_dir_path=tmp_path,
+            prefix="bar/",
+            suffixes=(".wav",".txt"),
+            skip_existing=True,
+        )
+    downloaded_files_wav = list(tmp_path.rglob("*.wav"))
+    downloaded_files_txt = list(tmp_path.rglob("*.txt"))
+
+    assert len(downloaded_files_wav) == 1
+    assert len(downloaded_files_txt) == 2

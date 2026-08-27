@@ -8,6 +8,9 @@ blobs_01 = {
         "foo/aaa.wav": b"aaa data",
         "foo/bbb.wav": b"bbb data",
         "bar/ccc.wav": b"ccc data",
+        "bar/ddd.txt": b"ddd data",
+        "bar/eee.txt": b"eee data",
+        "bar/fff.json": b"fff data"
     }
 
 
