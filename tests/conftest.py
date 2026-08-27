@@ -5,13 +5,14 @@ import pytest
 from .fakes import FakeContainerClient, FakeBlobProperties
 
 blobs_01 = {
-        "foo/aaa.wav": b"aaa data",
-        "foo/bbb.wav": b"bbb data",
-        "bar/ccc.wav": b"ccc data",
-        "bar/ddd.txt": b"ddd data",
-        "bar/eee.txt": b"eee data",
-        "bar/fff.json": b"fff data"
-    }
+    "foo/aaa.wav": b"aaa data",
+    "foo/bbb.wav": b"bbb data",
+    "foo": b"",
+    "bar/ccc.wav": b"ccc data",
+    "bar/ddd.txt": b"ddd data",
+    "bar/eee.txt": b"eee data",
+    "bar/fff.json": b"fff data",
+}
 
 
 @pytest.fixture

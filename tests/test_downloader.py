@@ -1,5 +1,6 @@
-from aqblob.downloader import download_files
+from aqblob import download_files
 # Mock class from unittest might used to replace fake classes
+
 
 def test_download_files(container_client, tmp_path):
     download_files(
@@ -16,6 +17,7 @@ def test_download_files(container_client, tmp_path):
     assert (tmp_path / "foo/aaa.wav").read_bytes() == b"aaa data"
     assert (tmp_path / "foo/bbb.wav").read_bytes() == b"bbb data"
 
+
 def test_download_files_skips_existing(container_client, tmp_path):
     file = tmp_path / "foo/aaa.wav"
     file.parent.mkdir(parents=True)
@@ -30,6 +32,7 @@ def test_download_files_skips_existing(container_client, tmp_path):
     )
 
     assert file.read_bytes() == b"existing data"
+
 
 def test_download_files_overwrites_existing(container_client, tmp_path):
     file = tmp_path / "foo/aaa.wav"
@@ -46,6 +49,7 @@ def test_download_files_overwrites_existing(container_client, tmp_path):
 
     assert file.read_bytes() == b"aaa data"
 
+
 def test_download_files_with_no_matching_blobs(container_client, tmp_path):
     download_files(
         container_client=container_client,
@@ -57,14 +61,15 @@ def test_download_files_with_no_matching_blobs(container_client, tmp_path):
 
     assert list(tmp_path.rglob("*")) == []
 
+
 def test_download_multiple_suffixes(container_client, tmp_path):
     download_files(
-            container_client=container_client,
-            downloaded_dir_path=tmp_path,
-            prefix="bar/",
-            suffixes=(".wav",".txt"),
-            skip_existing=True,
-        )
+        container_client=container_client,
+        downloaded_dir_path=tmp_path,
+        prefix="bar/",
+        suffixes=(".wav", ".txt"),
+        skip_existing=True,
+    )
     downloaded_files_wav = list(tmp_path.rglob("*.wav"))
     downloaded_files_txt = list(tmp_path.rglob("*.txt"))
 

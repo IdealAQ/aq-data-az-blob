@@ -2,6 +2,7 @@ class FakeBlobProperties:
     def __init__(self, name: str):
         self.name = name
 
+
 class FakeDownloadStream:
     def __init__(self, data: bytes):
         self.data = data
@@ -9,12 +10,14 @@ class FakeDownloadStream:
     def readall(self) -> bytes:
         return self.data
 
+
 class FakeBlobClient:
     def __init__(self, data: bytes):
         self.data = data
 
     def download_blob(self):
         return FakeDownloadStream(self.data)
+
 
 class FakeContainerClient:
     def __init__(self, blobs):

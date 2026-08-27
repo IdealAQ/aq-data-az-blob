@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from tqdm import tqdm
 from azure.storage.blob import ContainerClient
