@@ -1,5 +1,3 @@
-from pprint import pprint
-
 from aqblob.uploader import (
     batch_files_by_path,
     sort_file_batches_by_path_asc,
