@@ -1,4 +1,5 @@
 import os
+from pprint import pprint
 import shutil
 from tqdm import tqdm
 from pathlib import Path
@@ -71,9 +72,27 @@ def upload_file(
         raise
 
 
+def sort_file_batches_by_path_asc(
+    batches: dict[str, list[Path]],
+) -> dict[str, list[Path]]:
+    return {path: sorted(files) for path, files in sorted(batches.items())}
+
+
+def batch_files_by_path(
+    files: list[Path], source_path: Path, level: int = 1
+) -> dict[str, list[Path]]:
+    files_grouped = {}
+
+    for file in files:
+        parts = file.relative_to(source_path).parts
+        group_key = "/".join(parts[:level])
+        files_grouped.setdefault(group_key, []).append(file)
+    return files_grouped
+
+
 def upload_files(
-    source_dir_path: str,
-    staging_dir_path: str,
+    source_dir_path: Path,
+    staging_dir_path: Path,
     az_storage_connection_string: str,
     az_storage_container_name: str,
     suffixes: list[str],
@@ -82,8 +101,8 @@ def upload_files(
 ) -> None:
     logging.getLogger("azure").setLevel(logging.WARNING)
     logger.info("Starting upload_files process... <--- <----")
-    dir_to_process = f"{staging_dir_path}/to_process"
-    dir_archive = f"{staging_dir_path}/archive"
+    dir_to_process = staging_dir_path / "to_process"
+    dir_archive = staging_dir_path / "archive"
 
     # staging directories
     os.makedirs(dir_to_process, exist_ok=True)
@@ -105,19 +124,21 @@ def upload_files(
         f"Found {files_num} files ({','.join(suffixes)}) in source directory {source_dir_path}."
     )
 
-    GROUP_LEVEL = 3  # campaign, platform, source | date, hour (?), file.sample
+    GROUP_LEVEL = 3  # campaign, platform, source | date, ..., file.sample
 
-    files_grouped = {}
-
-    for file in files:
-        parts = file.relative_to(source_path).parts
-        group_key = "/".join(parts[:GROUP_LEVEL])
-        files_grouped.setdefault(group_key, []).append(file)
+    files_grouped = batch_files_by_path(
+        files=files, source_path=source_path, level=GROUP_LEVEL
+    )
 
     groups_num = len(files_grouped)
 
     for files in files_grouped.values():
-        files.sort(key=lambda f: f.relative_to(source_path))
+        # print(files[0].relative_to(source_path))
+        files = sorted(files, key=lambda path: str(path))
+
+    pprint(files_grouped)
+
+    return
 
     files_to_process = [
         file

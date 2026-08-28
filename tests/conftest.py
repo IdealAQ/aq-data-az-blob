@@ -1,4 +1,5 @@
 # tests/conftest.py
+from pathlib import Path
 
 import pytest
 
@@ -14,7 +15,46 @@ blobs_01 = {
     "bar/fff.json": b"fff data",
 }
 
+files_01 = {
+    Path("/data/aaa/bbb/11-11-11.txt"),
+    Path("/data/aaa/aaa/33-33-33.txt"),
+    Path("/data/aaa/aaa/11-11-11.txt"),
+    Path("/data/aaa/aaa/22-22-22.txt"),
+    Path("/data/aaa/bbb/22-22-22.txt"),
+    Path("/data/bbb/aaa/33-33-33.txt"),
+    Path("/data/bbb/aaa/11-11-11.txt"),
+    Path("/data/bbb/aaa/22-22-22.txt"),
+}
+
+batches_01 = {
+    "aaa": [
+        Path("/data/aaa/ccc/11-11-11.txt"),  # last
+        Path("/data/aaa/aaa/22-22-22.txt"),  # first
+        Path("/data/aaa/bbb/22-22-22.txt"),
+    ],
+    "ccc": [
+        Path("/data/ccc/ddd/11-11-11.txt"),  # last
+        Path("/data/ccc/bbb/22-22-22.txt"),
+        Path("/data/ccc/aaa/11-11-11.txt"),  # fist
+    ],
+    "bbb": [
+        Path("/data/bbb/aaa/11-11-11.txt"),  # fist
+        Path("/data/bbb/aaa/33-33-33.txt"),  # last
+        Path("/data/bbb/aaa/22-22-22.txt"),
+    ],
+}
+
 
 @pytest.fixture
 def container_client():
     return FakeContainerClient(blobs_01)
+
+
+@pytest.fixture
+def file_paths():
+    return files_01
+
+
+@pytest.fixture
+def file_batches():
+    return batches_01
