@@ -70,16 +70,42 @@ Uploads files in subfolders of specified root. The paths of the uploaded blobs m
 
 | Argument | Type | Default | Description|
 |----------|------|---------|------------|
-|`--keep` `-k`|int|`1`|Number of the newest files to ingnore in each directory|
-|`--limit` `-l`|int|`1000`|Max. number of oldest files to include in each directory|
+|`--keep` `-k`|int|`1`|Number of the newest files to ingnore in each batch|
+|`--limit` `-l`|int|`1000`|Max. number of oldest files to include in each batch|
+|`--batch_lvl` `-b`|int|`3`|Path batch level.|
 
-\* **Note:** `--keep` relies on the filename/path following naming pattern which keeps newst files to be last when file paths are sorted. Example: `.../date=yyyy-mm-dd/hh-mm-ss.suffix`.
+\* **Note:** `--keep` relies on the filename/path following naming pattern which keeps newst files to be last when file paths are sorted in ascending order. Example: `.../date=yyyy-mm-dd/hh-mm-ss.suffix`.
+
+**Clarification:** `--batch_lvl` specifies by how many parts the file paths should be batched.<br>
+Example:<br>
+if `AQ_AZ_SOURCE_FILE_DIRECTORY_PATH` is `\data` and `--batch_lvl` is `3`
+```
+Path("/data/campaign=a/platform=a/device=a/date=2026-05-20/11-11-11.txt"),
+Path("/data/campaign=a/platform=a/device=a/date=2026-05-20/22-22-22.txt"),
+Path("/data/campaign=b/platform=b/device=b/date=2026-05-20/11-11-11.txt"),
+Path("/data/campaign=b/platform=b/device=c/date=2026-05-20/11-11-11.txt"),
+```
+is batched into the following 3 batches:
+```
+"campaign=a/platform=a/device=a": [ # batch 1
+    Path("/data/campaign=a/platform=a/device=a/date=2026-05-20/11-11-11.txt"),
+    Path("/data/campaign=a/platform=a/device=a/date=2026-05-20/22-22-22.txt"),
+    ],
+"campaign=b/platform=b/device=b": [ # batch 2
+    Path("/data/campaign=b/platform=b/device=b/date=2026-05-20/11-11-11.txt")
+    ],
+"campaign=b/platform=b/device=c": [ # batch 3
+    Path("/data/campaign=b/platform=b/device=c/date=2026-05-20/11-11-11.txt")
+    ]
+```
+
+`--keep` and `--limit` is applied for each batch separatelly.
 
 **sequence:**
 1. **Step 1:** move files from `AQ_AZ_SOURCE_FILE_DIRECTORY_PATH` to `AQ_AZ_STAGING_DIRECTORY_PATH`
 2. **Step 2:** upload files from `AQ_AZ_STAGING_DIRECTORY_PATH` to Azure Storage
 
-\* `--keep` and `--limit` affect only step 1
+\* `--keep` and `--limit` affect only step 1, all files in `AQ_AZ_STAGING_DIRECTORY_PATH` will be attempted to be uploaded (i.e. new files + leftover from previous failed upload)
 
 
 #### Use

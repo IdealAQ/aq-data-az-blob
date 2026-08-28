@@ -1,6 +1,7 @@
 import argparse
 from aqblob import list_blobs, config, setup_logging
 from pprint import pprint
+from azure.storage.blob import BlobServiceClient
 
 
 def parse_args():
@@ -28,12 +29,16 @@ def parse_args():
 
 def main():
     args = parse_args()
+    blobs = []
 
-    blobs = list_blobs(
-        prefix=args.prefix,
-        az_storage_connection_string=config.AZ_STORAGE_CONNECTION_STRING,
-        az_storage_container_name=args.container,
-    )
+    with BlobServiceClient.from_connection_string(
+        config.AZ_STORAGE_CONNECTION_STRING
+    ) as blob_service_client:
+        container_client = blob_service_client.get_container_client(args.container)
+        blobs = list_blobs(
+            container_client=container_client,
+            prefix=args.prefix,
+        )
 
     pprint(f"Blobs with prefix '{args.prefix}':")
     pprint(blobs)

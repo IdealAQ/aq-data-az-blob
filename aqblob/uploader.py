@@ -2,7 +2,7 @@ import os
 import shutil
 from tqdm import tqdm
 from pathlib import Path
-from azure.storage.blob import BlobServiceClient, ContainerClient
+from azure.storage.blob import ContainerClient
 from azure.core.exceptions import AzureError
 import logging
 
@@ -30,34 +30,23 @@ def _export_file(
 
 
 def upload_file(
-    file_path: str,
+    container_client: ContainerClient,
+    file_path: Path,
     blob_path: str,
-    az_storage_connection_string: str,
-    az_storage_container_name: str,
 ) -> None:
+    # TODO:
+    return
     logger.info("Starting upload_file (single) process...")
 
-    file_path = Path(file_path)
-
     try:
-        with BlobServiceClient.from_connection_string(
-            az_storage_connection_string,
-            connection_timeout=600,
-            max_block_size=1024 * 1024,  # 1 MiB
-            max_single_put_size=1024 * 1024,  # force block upload for >1 MiB
-        ) as blob_service_client:
-            container_client = blob_service_client.get_container_client(
-                az_storage_container_name
+        with file_path.open("rb") as data:
+            container_client.upload_blob(
+                name=blob_path,
+                data=data,
+                overwrite=True,
+                timeout=600,
+                max_concurrency=1,
             )
-
-            with file_path.open("rb") as data:
-                container_client.upload_blob(
-                    name=blob_path,
-                    data=data,
-                    overwrite=True,
-                    timeout=600,
-                    max_concurrency=1,
-                )
 
         logger.info("Successfully uploaded %s -> %s", file_path, blob_path)
 
@@ -71,28 +60,62 @@ def upload_file(
         raise
 
 
+def sort_file_batches_by_path_asc(
+    batches: dict[str, list[Path]],
+) -> dict[str, list[Path]]:
+    return {path: sorted(files) for path, files in sorted(batches.items())}
+
+
+def batch_files_by_path(
+    files: list[Path], source_path: Path, level: int = 1
+) -> dict[str, list[Path]]:
+    files_grouped = {}
+
+    for file in files:
+        parts = file.relative_to(source_path).parts
+        group_key = "/".join(parts[:level])
+        files_grouped.setdefault(group_key, []).append(file)
+    return files_grouped
+
+
+def extract_batches(
+    file_batches: dict[str, list[Path]],
+    keep: int,
+    limit: int,
+) -> list[Path]:
+    file_batches = sort_file_batches_by_path_asc(file_batches)
+
+    if limit <= 0:
+        return []
+
+    extracted_files = []
+
+    for files in file_batches.values():
+        candidates = files[::-1][keep:]
+        extracted_files.extend(candidates[-limit:])
+
+    return extracted_files
+
+
 def upload_files(
-    source_dir_path: str,
-    staging_dir_path: str,
-    az_storage_connection_string: str,
-    az_storage_container_name: str,
+    container_client: ContainerClient,
+    source_dir_path: Path,
+    staging_dir_path: Path,
     suffixes: list[str],
     keep: int = 1,
     limit: int = 1000,
+    batch_lvl: int = 0,
 ) -> None:
     logging.getLogger("azure").setLevel(logging.WARNING)
     logger.info("Starting upload_files process... <--- <----")
-    dir_to_process = f"{staging_dir_path}/to_process"
-    dir_archive = f"{staging_dir_path}/archive"
-
-    # staging directories
-    os.makedirs(dir_to_process, exist_ok=True)
-    os.makedirs(dir_archive, exist_ok=True)
 
     # paths
-    source_path = Path(source_dir_path)
-    process_path = Path(dir_to_process)
-    archive_path = Path(dir_archive)
+    source_path = source_dir_path
+    process_path = staging_dir_path / "to_process"
+    archive_path = staging_dir_path / "archive"
+
+    os.makedirs(process_path, exist_ok=True)
+    os.makedirs(archive_path, exist_ok=True)
 
     # locate files in source directory
     files = [
@@ -100,30 +123,21 @@ def upload_files(
         for f in source_path.rglob("*")
         if f.is_file() and any(str(f).endswith(suffix) for suffix in suffixes)
     ]
+
     files_num = len(files)
     logger.info(
         f"Found {files_num} files ({','.join(suffixes)}) in source directory {source_dir_path}."
     )
 
-    GROUP_LEVEL = 3  # campaign, platform, source | date, hour (?), file.sample
+    file_batches = batch_files_by_path(
+        files=files, source_path=source_path, level=batch_lvl
+    )
 
-    files_grouped = {}
+    groups_num = len(file_batches)
 
-    for file in files:
-        parts = file.relative_to(source_path).parts
-        group_key = "/".join(parts[:GROUP_LEVEL])
-        files_grouped.setdefault(group_key, []).append(file)
-
-    groups_num = len(files_grouped)
-
-    for files in files_grouped.values():
-        files.sort(key=lambda f: f.relative_to(source_path))
-
-    files_to_process = [
-        file
-        for _, files in files_grouped.items()
-        for file in ((files[:-keep])[:limit] if keep > 0 else files[:limit])
-    ]
+    files_to_process = extract_batches(
+        file_batches=file_batches, keep=keep, limit=limit
+    )
 
     files_to_process_num = len(files_to_process)
 
@@ -154,23 +168,12 @@ def upload_files(
     success_count = 0
     failure_count = 0
 
-    with (
-        BlobServiceClient.from_connection_string(
-            az_storage_connection_string,
-            connection_timeout=600,
-            max_block_size=1024 * 1024,  # 1 MiB
-            max_single_put_size=1024 * 1024,  # force block upload for >1 MiB
-        ) as blob_service_client,
-        tqdm(
-            total=files_to_export_num,
-            unit="files",
-            unit_scale=False,
-            desc="Uploading files",
-        ) as progress,
-    ):
-        container_client = blob_service_client.get_container_client(
-            az_storage_container_name
-        )
+    with tqdm(
+        total=files_to_export_num,
+        unit="files",
+        unit_scale=False,
+        desc="Uploading files",
+    ) as progress:
         for file in files_to_export:
             relative_path = file.relative_to(process_path)
             blob_path = f"{relative_path}"

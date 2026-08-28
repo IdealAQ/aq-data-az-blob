@@ -22,6 +22,8 @@ def main():
 
     args = parser.parse_args()
 
+    raise NotImplementedError
+
     upload_file(
         file_path=args.file_path,
         blob_path=args.blob_path,

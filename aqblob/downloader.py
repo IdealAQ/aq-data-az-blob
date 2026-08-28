@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from tqdm import tqdm
 from azure.storage.blob import ContainerClient
@@ -8,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 def list_local_files(
-    directory_path: str,
+    directory_path: Path,
     prefix: str,
     suffixes: tuple[str],
 ) -> list[str]:
@@ -23,7 +22,7 @@ def list_local_files(
     Returns:
         list[str]: A list of matching file paths.
     """
-    source_path = Path(directory_path)
+    source_path = directory_path
     source_path_prefix = source_path / prefix
     if not source_path_prefix.exists():
         logger.warning(f"Directory {source_path_prefix} does not exist.")
@@ -39,7 +38,7 @@ def list_local_files(
 
 def download_files(
     container_client: ContainerClient,
-    downloaded_dir_path: str,
+    downloaded_dir_path: Path,
     prefix: str,
     suffixes: tuple[str],
     skip_existing: bool = True,

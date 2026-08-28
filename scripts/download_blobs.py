@@ -1,6 +1,8 @@
 import argparse
 from aqblob import download_files, config, setup_logging
 from azure.storage.blob import BlobServiceClient
+from pathlib import Path
+
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -40,12 +42,10 @@ def main():
     with BlobServiceClient.from_connection_string(
         config.AZ_STORAGE_CONNECTION_STRING
     ) as blob_service_client:
-        container_client = blob_service_client.get_container_client(
-            args.container
-        )
+        container_client = blob_service_client.get_container_client(args.container)
         download_files(
             container_client=container_client,
-            downloaded_dir_path=config.DOWNLOADED_DIR_PATH,
+            downloaded_dir_path=Path(config.DOWNLOADED_DIR_PATH),
             prefix=args.prefix,
             suffixes=config.FILE_SUFFIXES,
             skip_existing=not args.force,
