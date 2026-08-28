@@ -59,3 +59,24 @@ def test_batch_files_by_path_level_larger_than_path(file_paths):
     assert len(batches) == len(file_paths)
 
 
+def test_upload_files(container_client, upload_dirs):
+
+    assert 0
+
+def test_upload_files_keep_0(container_client, upload_dirs):
+    
+    assert 0
+
+def test_upload_files_keep_1(container_client, upload_dirs):
+    
+    assert 0
+
+def test_upload_files_keep_larger_than_files(container_client, upload_dirs):
+    
+    assert 0
+
+def test_upload_files_empty_source(container_client, upload_dirs):
+    
+    assert 0
+
+

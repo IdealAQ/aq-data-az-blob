@@ -58,3 +58,19 @@ def file_paths():
 @pytest.fixture
 def file_batches():
     return batches_01
+
+@pytest.fixture
+def upload_dirs(tmp_path):
+    staging = tmp_path / "staging"
+
+    dirs = {
+        "source": tmp_path / "source",
+        "staging": staging,
+        "process": staging / "to_process",
+        "archive": staging / "archive",
+    }
+
+    for path in dirs.values():
+        path.mkdir(parents=True, exist_ok=True)
+
+    return dirs
