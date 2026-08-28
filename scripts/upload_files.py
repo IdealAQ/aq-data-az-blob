@@ -29,7 +29,7 @@ def main():
         type=int,
         required=False,
         help="Path batch level.",
-        default=3
+        default=3,
     )
 
     args = parser.parse_args()
@@ -41,7 +41,7 @@ def main():
         max_single_put_size=1024 * 1024,  # force block upload for >1 MiB
     ) as blob_service_client:
         container_client = blob_service_client.get_container_client(
-            az_storage_container_name=config.AZ_STORAGE_CONTAINER_NAME
+            container=config.AZ_STORAGE_CONTAINER_NAME
         )
         upload_files(
             container_client=container_client,
@@ -50,7 +50,7 @@ def main():
             suffixes=config.FILE_SUFFIXES,
             keep=args.keep,
             limit=args.limit,
-            batch_lvl=args.batch_lvl
+            batch_lvl=args.batch_lvl,
         )
 
 

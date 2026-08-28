@@ -32,3 +32,6 @@ class FakeContainerClient:
 
     def get_blob_client(self, blob_name):
         return FakeBlobClient(self.blobs[blob_name])
+
+    def upload_blob(self, **kwargs):
+        pass

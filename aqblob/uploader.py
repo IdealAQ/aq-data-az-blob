@@ -1,5 +1,4 @@
 import os
-from pprint import pprint
 import shutil
 from tqdm import tqdm
 from pathlib import Path
@@ -79,6 +78,25 @@ def batch_files_by_path(
     return files_grouped
 
 
+def extract_batches(
+    file_batches: dict[str, list[Path]],
+    keep: int,
+    limit: int,
+) -> list[Path]:
+    file_batches = sort_file_batches_by_path_asc(file_batches)
+
+    if limit <= 0:
+        return []
+
+    extracted_files = []
+
+    for files in file_batches.values():
+        candidates = files[::-1][keep:]
+        extracted_files.extend(candidates[-limit:])
+
+    return extracted_files
+
+
 def upload_files(
     container_client: ContainerClient,
     source_dir_path: Path,
@@ -86,7 +104,7 @@ def upload_files(
     suffixes: list[str],
     keep: int = 1,
     limit: int = 1000,
-    batch_lvl: int = 0
+    batch_lvl: int = 0,
 ) -> None:
     logging.getLogger("azure").setLevel(logging.WARNING)
     logger.info("Starting upload_files process... <--- <----")
@@ -111,21 +129,15 @@ def upload_files(
         f"Found {files_num} files ({','.join(suffixes)}) in source directory {source_dir_path}."
     )
 
-    files_grouped = batch_files_by_path(
+    file_batches = batch_files_by_path(
         files=files, source_path=source_path, level=batch_lvl
     )
 
-    groups_num = len(files_grouped)
+    groups_num = len(file_batches)
 
-    for files in files_grouped.values():
-        # print(files[0].relative_to(source_path))
-        files = sorted(files, key=lambda path: str(path))
-
-    files_to_process = [
-        file
-        for _, files in files_grouped.items()
-        for file in ((files[:-keep])[:limit] if keep > 0 else files[:limit])
-    ]
+    files_to_process = extract_batches(
+        file_batches=file_batches, keep=keep, limit=limit
+    )
 
     files_to_process_num = len(files_to_process)
 
@@ -157,11 +169,11 @@ def upload_files(
     failure_count = 0
 
     with tqdm(
-            total=files_to_export_num,
-            unit="files",
-            unit_scale=False,
-            desc="Uploading files",
-        ) as progress:
+        total=files_to_export_num,
+        unit="files",
+        unit_scale=False,
+        desc="Uploading files",
+    ) as progress:
         for file in files_to_export:
             relative_path = file.relative_to(process_path)
             blob_path = f"{relative_path}"
