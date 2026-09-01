@@ -76,7 +76,7 @@ Uploads files in subfolders of specified root. The paths of the uploaded blobs m
 
 \* **Note:** `--keep` relies on the filename/path following naming pattern which keeps newst files to be last when file paths are sorted in ascending order. Example: `.../date=yyyy-mm-dd/hh-mm-ss.suffix`.
 
-**Clarification:** `--batch_lvl` specifies by how many parts the file paths should be batched.<br>
+**Clarification:** `--batch_lvl` specifies by how many parts/path components the file paths should be batched.<br>
 Example:<br>
 if `AQ_AZ_SOURCE_FILE_DIRECTORY_PATH` is `\data` and `--batch_lvl` is `3`
 ```
@@ -84,8 +84,9 @@ Path("/data/campaign=a/platform=a/device=a/date=2026-05-20/11-11-11.txt"),
 Path("/data/campaign=a/platform=a/device=a/date=2026-05-20/22-22-22.txt"),
 Path("/data/campaign=b/platform=b/device=b/date=2026-05-20/11-11-11.txt"),
 Path("/data/campaign=b/platform=b/device=c/date=2026-05-20/11-11-11.txt"),
+Path("/data/campaign=c/platform=b/device=c/date=2026-05-20/11-11-11.txt"),
 ```
-is batched into the following 3 batches:
+is batched into the following 4 batches (each batch having 3 components):
 ```
 "campaign=a/platform=a/device=a": [ # batch 1
     Path("/data/campaign=a/platform=a/device=a/date=2026-05-20/11-11-11.txt"),
@@ -96,8 +97,13 @@ is batched into the following 3 batches:
     ],
 "campaign=b/platform=b/device=c": [ # batch 3
     Path("/data/campaign=b/platform=b/device=c/date=2026-05-20/11-11-11.txt")
+    ],
+"campaign=c/platform=b/device=c": [ # batch 4
+    Path("/data/campaign=c/platform=b/device=c/date=2026-05-20/11-11-11.txt")
     ]
 ```
+
+in this case, the 3 batch components are: `campaign`, `platform`, `device`<br>
 
 `--keep` and `--limit` is applied for each batch separatelly.
 
