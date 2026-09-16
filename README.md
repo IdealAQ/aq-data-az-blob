@@ -170,8 +170,6 @@ Downloads files from Azure storage service into directory structure matching the
 
 
 #### Use
-> **NOTE:** run as a module (use `-m` flag)
-
 To download files from campaign none-001 and platform scooter-001, run:
 ```bash
 uv run download -p="campaign=none-001/platform=scooter-001/" -c="raw-sound"
