@@ -1,7 +1,7 @@
 [project]
 name = "aq-data-az-blob"
 version = "0.1.0"
-description = "Add your description here"
+description = "Scripts for accessing AQ data on Azure Cloud."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
